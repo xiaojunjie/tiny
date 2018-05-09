@@ -28,6 +28,7 @@ Tiny::Tiny(const string & filename) {
         Template tpl(Template::TPL404);
         return new HttpResponse(tpl.render(), 404);
     });
+	//static file, css, js ...
 	route(Route::STATIC_FILES);
 }
 
@@ -86,7 +87,7 @@ int Tiny::reply(SocketStream *socket, const HttpResponse *response) {
     if(response == NULL || socket == NULL) {
         return -1;
     } else if(HttpProtocol::SendMessage(*socket, *response) < 0) {
-        logger::error << "[reply error] " << *response << logger::endl;
+        logger::error << "[Tiny] Reply Error " << *response << logger::endl;
     }
     return 1;
 }
@@ -112,6 +113,13 @@ shared_ptr<HttpResponse> Tiny::route(HttpRequest *request) {
     }
     return NULL;
 }
+// route table
+Tiny& Tiny::route(const RouterTable & table){
+	for(const auto & item: table){
+		route(item.first,item.second);
+	}
+    return *this;
+}
 // list of uri
 Tiny& Tiny::route(initializer_list<string> uris,  const make_response_function &callback) {
      for(auto const& uri : uris) {
@@ -119,6 +127,7 @@ Tiny& Tiny::route(initializer_list<string> uris,  const make_response_function &
     }
     return *this;
 }
+
 //css js ...
 Tiny& Tiny::route(initializer_list<string> list) {
 	string folder = ServerConfig["assets"];
@@ -134,6 +143,7 @@ Tiny& Tiny::route(initializer_list<string> list) {
     }
     return *this;
 }
+
 // single uri
 Tiny& Tiny::route(string uri, const make_response_function &callback) {
     router->append(uri, callback, false);

@@ -23,7 +23,7 @@ clean:
 
 .PHONY: test
 test:
-	@(cd example; ./wechat_server tiny.cfg)
+	@(cd test; make; ./test_server tiny.cfg)
 
 curl:
 	curl 127.0.0.1:8888/ -v &

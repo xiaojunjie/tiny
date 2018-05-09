@@ -1,0 +1,32 @@
+[2018-05-09 23:56:32] Info: Tiny Web Server 1.0
+[2018-05-09 23:56:32] Info: [Config]assets = /media/xiao/Data/code/tiny/test/assets/
+[2018-05-09 23:56:32] Info: [Config]log = /media/xiao/Data/code/tiny/test/log/
+[2018-05-09 23:56:32] Info: [Config]port = 8888
+[2018-05-09 23:56:32] Info: [Config]template = /media/xiao/Data/code/tiny/test/template/
+[2018-05-09 23:56:32] Debug: [New Route] uri: css, query: 0, static: 1, count: 0.
+[2018-05-09 23:56:32] Debug: prepare to get 1 item from sbuf ... 
+[2018-05-09 23:56:32] Debug: [New Route] uri: js, query: 0, static: 1, count: 0.
+[2018-05-09 23:56:32] Debug: [New Route] uri: xml, query: 0, static: 1, count: 0.
+[2018-05-09 23:56:32] Debug: [New Route] uri: icon, query: 0, static: 1, count: 0.
+[2018-05-09 23:56:32] Debug: [New Route] uri: png, query: 0, static: 1, count: 0.
+[2018-05-09 23:56:32] Debug: [New Route] uri: jpg, query: 0, static: 1, count: 0.
+[2018-05-09 23:56:32] Debug: [New Route] uri: gif, query: 0, static: 1, count: 0.
+[2018-05-09 23:56:32] Debug: [New Route] uri: txt, query: 0, static: 1, count: 0.
+[2018-05-09 23:56:32] Debug: [New Route] uri: /index.html/, query: 0, static: 0, count: 0.
+[2018-05-09 23:56:32] Debug: [New Route] uri: /list/, query: 2, static: 0, count: 0.
+[2018-05-09 23:56:32] Debug: [New Route] uri: /json/, query: 0, static: 0, count: 0.
+[2018-05-09 23:56:33] Debug: prepare to insert 1 item into sbuf ... 
+[2018-05-09 23:56:33] Debug: 1 item in sbuf after insert
+[2018-05-09 23:56:33] Debug: 0 item in sbuf after remove
+[2018-05-09 23:56:33] Debug: 0 thread need to exit
+[2018-05-09 23:56:33] Debug: work for fd 5
+[2018-05-09 23:56:33] Debug: [Tiny] POST /json HTTP/1.1
+accept: */*
+content-length: 32
+content-type: application/json
+host: 127.0.0.1:8888
+user-agent: curl/7.35.0
+
+{	"id": 1,	"time": "2018-05-08"}
+[2018-05-09 23:56:33] Debug: Close fd 5
+[2018-05-09 23:56:33] Debug: prepare to get 1 item from sbuf ... 

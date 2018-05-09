@@ -2,11 +2,11 @@
 #include <iostream>
 namespace tiny{
 
-const string HttpMessage::HEADER_CONTENT_LENGTH = "Content-length";
-const string HttpMessage::HEADER_TRANSFER_ENCODING = "Transfer-Encoding";
-const string HttpMessage::HEADER_CONTENT_TYPE = "Content-type";
-const string HttpMessage::HEADER_SERVER = "Server";
-const string HttpMessage::HEADER_ACCEPT = "Accept";
+const string HttpMessage::HEADER_CONTENT_LENGTH = "content-length";
+const string HttpMessage::HEADER_TRANSFER_ENCODING = "transfer-encoding";
+const string HttpMessage::HEADER_CONTENT_TYPE = "content-type";
+const string HttpMessage::HEADER_SERVER = "server";
+const string HttpMessage::HEADER_ACCEPT = "accept";
 const string HttpMessage::MessageOK = "Ok";
 const string HttpMessage::HttpVersion = "HTTP/1.0";
 const string HttpMessage::TYPE_ALL = "*/*";
@@ -18,6 +18,7 @@ const string HttpMessage::TYPE_IMAGE_GIF = "image/gif";
 const string HttpMessage::TYPE_IMAGE_PNG = "image/png";
 const string HttpMessage::TYPE_IMAGE_JEPG = "image/jepg";
 const string HttpMessage::TYPE_APPLICATION_JS = "application/x-javascript";
+const string HttpMessage::TYPE_APPLICATION_JSON = "application/json";
 const string HttpMessage::TYPE_APPLICATION_XML = "application/xml";
 std::ostream &operator<<(std::ostream &out, HttpMessage const &message) {
     ostringstream buf;
@@ -85,7 +86,7 @@ int HttpRequest::SetVersion(string str){
     return version.length();
 }
 int HttpRequest::SetUri(string str){
-    uri = str;
+   	uri = str;
     return uri.length();
 }
 int HttpRequest::SetMethod(string str){

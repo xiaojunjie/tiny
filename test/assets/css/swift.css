@@ -1,0 +1,161 @@
+#overview .link-overview, #playground .link-playgrounds, #resources .link-resources, #blog .link-blog {
+	color: rgba(51, 51, 51, 0.6);
+	pointer-events: none;
+}
+
+.title {
+	font-weight: 500;
+}
+
+.headline {
+	margin-bottom: 0;
+}
+
+.sub-headline {
+	margin-top: 0.4em;
+	max-width: 600px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+@supports (-webkit-backdrop-filter: blur(20px)) or (backdrop-filter: blur(20px)) {
+	/* Blur Navigation Bar */
+	#ac-localnav.ac-localnav-scrim .ac-ln-background {
+		background-color: rgba(255, 255, 255, 0.65);
+		-webkit-backdrop-filter: saturate(180%) blur(20px);
+		backdrop-filter: saturate(180%) blur(20px)
+	}
+}
+
+/* Swift subnav */
+
+.subnav {
+	border-bottom: none;
+}
+
+.subnav .sub-title h2 a {
+	color: #fff;
+}
+
+.subnav ul li a {
+	color: #fff;
+}
+
+.subnav ul li a.active {
+	color: #fff;
+	font-weight: 700;
+}
+
+.rss {
+	position: relative;
+	top: 2.5em;
+}
+
+h1 a:not(:hover) {
+	color: inherit;
+}
+
+h1 a:hover {
+	text-decoration: none;
+	border-bottom: 2px solid #08c;
+}
+
+pre code .console {
+	color: #808080;
+}
+
+.pad-top-2-col {
+	padding-top: 1.5em;
+}
+
+@media all and (max-width: 767px) {
+	.pad-top-2-col {
+		padding-top: 0;
+	}
+}
+
+/* Heroes */
+
+.section-playgrounds {
+	width: 100%;
+	overflow: hidden;
+}
+
+.hero-swift-playgrounds {
+	background-repeat: no-repeat;
+	background-size: 580px 411px;
+	height: 411px;
+	width: 580px;
+	background-image: url("https://devimages-cdn.apple.com/swift/images/swift-playgrounds-hero.png");
+	background-position: center top;
+	margin: -120px auto 0;
+	-webkit-transform: translateY(150px);
+	-moz-transform: translateY(150px);
+	-o-transform: translateY(150px);
+	transform: translateY(150px);
+}
+
+@media only screen and (-webkit-min-device-pixel-ratio: 1.5), only screen and (min-resolution: 1.5dppx), (-webkit-min-device-pixel-ratio: 1.5), (min-resolution: 144dpi) {
+	.hero-swift-playgrounds {
+		background-image: url("https://devimages-cdn.apple.com/swift/images/swift-playgrounds-hero_2x.png")
+	}
+}
+
+@media all and (max-width: 767px) {
+	.hero-swift-playgrounds {
+		background-size: 283px 201px;
+		height: 201px;
+		width: 283px;
+		background-image: url("https://devimages-cdn.apple.com/swift/images/swift-playgrounds-hero-small.png");
+	}
+}
+
+@media only screen and (max-width: 767px) and (-webkit-min-device-pixel-ratio: 1.5), only screen and (max-width: 767px) and (min-resolution: 1.5dppx), only screen and (max-width: 767px) and (min-resolution: 144dpi) {
+	.hero-swift-playgrounds {
+		background-image: url("https://devimages-cdn.apple.com/swift/images/swift-playgrounds-hero-small_2x.png")
+	}
+}
+
+.hero-swift-main {
+	display: block;
+	background-repeat: no-repeat;
+	background-size: 1100px 629px;
+	height: 629px;
+	width: 100%;
+	background-image: url('https://devimages-cdn.apple.com/swift/images/swift-screenshot-hero-large.jpg');
+	background-position: center;
+}
+
+@media only screen and (-webkit-min-device-pixel-ratio: 1.5), only screen and (min-resolution: 1.5dppx), (-webkit-min-device-pixel-ratio: 1.5), (min-resolution: 144dpi) {
+	.hero-swift-main {
+		background-image: url('https://devimages-cdn.apple.com/swift/images/swift-screenshot-hero-large_2x.jpg');
+	}
+}
+
+@media all and (max-width: 1023px) {
+	.hero-swift-main {
+		background-size: 715px 409px;
+		height: 409px;
+		background-image: url('https://devimages-cdn.apple.com/swift/images/swift-screenshot-hero-medium.jpg');
+	}
+}
+
+@media only screen and (max-width: 1023px) and (-webkit-min-device-pixel-ratio: 1.5), only screen and (max-width: 1023px) and (min-resolution: 1.5dppx), only screen and (max-width: 1023px) and (min-resolution: 144dpi) {
+	.hero-swift-main {
+		background-image: url('https://devimages-cdn.apple.com/swift/images/swift-screenshot-hero-medium_2x.jpg');
+	}
+}
+
+@media all and (max-width: 767px) {
+	.hero-swift-main {
+		background-size: 283px 162px;
+		height: 162px;
+		background-image: url('https://devimages-cdn.apple.com/swift/images/swift-screenshot-hero-small.jpg');
+	}
+}
+
+@media only screen and (max-width: 767px) and (-webkit-min-device-pixel-ratio: 1.5), only screen and (max-width: 767px) and (min-resolution: 1.5dppx), only screen and (max-width: 767px) and (min-resolution: 144dpi) {
+	.hero-swift-main {
+		background-image: url('https://devimages-cdn.apple.com/swift/images/swift-screenshot-hero-small_2x.jpg');
+	}
+}

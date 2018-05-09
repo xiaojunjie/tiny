@@ -13,13 +13,16 @@
 #define LOGLEVEL logger::Debug
 namespace tiny{
 
-class Tiny{
 typedef function<HttpResponse*(vector<string>)> make_response_function;
+typedef std::map<std::string, make_response_function> RouterTable;
+
+class Tiny{
 public:
     Tiny(const string &);
     int run();
     int run(int);
     ~Tiny();
+    Tiny& route(const RouterTable &);
     Tiny& route(string, const make_response_function &);
     Tiny& route(initializer_list<string>, const make_response_function &);
     Tiny& route(initializer_list<string>);

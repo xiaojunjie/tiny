@@ -26,6 +26,7 @@ public:
     static const string TYPE_IMAGE_ICO;
     static const string TYPE_IMAGE_JEPG;
     static const string TYPE_APPLICATION_JS;
+    static const string TYPE_APPLICATION_JSON;
     static const string TYPE_APPLICATION_XML;
     int SetHeader(string, string);
     int SetHeader(string, int);
