@@ -22,3 +22,8 @@ config:
 	@sed -i "/^template\s*=/ s:=.*:= $(current_dir)template/:" tiny.cfg
 	@sed -i "/^port\s*=/ s:=.*:= 8888:" tiny.cfg
 	@cat tiny.cfg
+
+.PHONY: logger
+logger: logger.cpp ../tool.cpp ../file/file_logger.cpp 
+	 $(CC) $^ -I.. -I../include -std=c++11 -lpthread -ldl && ./a.out
+

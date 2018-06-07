@@ -15,7 +15,7 @@ libtiny.a: tiny.o tool.o $(LIB_OBJS)
 
 .PHONY: example
 example:
-	@( cd example; make )
+	@( cd example; make && ./example_server tiny.cfg )
 
 .PHONY: clean
 clean:
@@ -23,7 +23,7 @@ clean:
 
 .PHONY: test
 test:
-	@(cd test; make; ./test_server tiny.cfg)
+	@(cd test; make && ./test_server tiny.cfg)
 
 curl:
 	curl 127.0.0.1:8888/ -v &

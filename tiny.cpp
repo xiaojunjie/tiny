@@ -52,7 +52,8 @@ int Tiny::run(int port) {
     return SocketStream::Wait(port, [this](int fd, struct sockaddr_in addr) {
         SocketStream *socket = new SocketStream(fd, addr);
         if(socket == NULL) {
-            return logger::warm << "SocketStream error" << logger::endl;
+            logger::warm << "SocketStream error" << logger::endl;
+            return;
         }
         int len = socketQueue->insert(socket);
         if(len >= LISTENQ_G) {
@@ -80,6 +81,7 @@ void* Tiny::work(void *args) {
 }
 
 int Tiny::reply(SocketStream *socket, shared_ptr<HttpResponse> response) {
+    logger::debug << "[Tiny::reply] " << *response << logger::endl;
     return reply(socket, response.get());
 }
 
@@ -160,7 +162,7 @@ int Tiny::parse(SocketStream *socket, HttpRequest *request) {
     } else if(HttpProtocol::ParseBody(*socket, *request) < 0) {
         logger::info << " [parse error 2] " << *request << logger::endl;
     }
-    logger::debug << "[Tiny] " << *request << logger::endl;
+    logger::debug << "[Tiny::parse] " << *request << logger::endl;
     return 1;	
 }
 

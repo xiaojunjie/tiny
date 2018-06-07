@@ -173,8 +173,10 @@ namespace tiny{
 
 	}
 	bool Route::MatchQuery(const vector<string> &a, const set<string> &b){
-		//std::cout << 2 << std::endl;
-		return a.empty() || set<string>(a.begin(),a.end())==b;
+		//==;
+		//return a.empty() || set<string>(a.begin(),a.end())==b;
+		// >=
+		return a.empty() || includes(a.begin(),a.end(),b.end(),b.end());
 	}
 	bool Route::MatchType(const route_t * route, const HttpRequest &request){
 		//std::cout << 3 << std::endl;
