@@ -71,6 +71,9 @@ public:
     HttpResponse(string,string);
     HttpResponse(string,int);
     HttpResponse(string,string,int);
+    string GetBody() const{
+        return body;
+    };
     string GetFirstLine() const override;
 private:
     string message;

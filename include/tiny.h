@@ -1,16 +1,15 @@
 #pragma once
 
+#include "file.h"
 #include "socket.h"
 #include "sbuf.h"
 #include "threadpool.h"
 #include "http.h"
 #include "route.h"
-#include "file.h"
 #include <initializer_list>
 #include <memory>
 #include <vector>
 #include <map>
-#define LOGLEVEL logger::Debug
 namespace tiny{
 
 typedef function<HttpResponse*(vector<string>)> make_response_function;
@@ -26,7 +25,6 @@ public:
     Tiny& route(string, const make_response_function &);
     Tiny& route(initializer_list<string>, const make_response_function &);
     Tiny& route(initializer_list<string>);
-    // Tiny& route(string, HttpResponse *);
     void* work(void *);
 private:
 	static const string version;

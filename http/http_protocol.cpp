@@ -25,7 +25,7 @@ namespace tiny{
             request.SetUri(header[1]);
             request.SetVersion(header[2]);
         }else{
-            logger::info << "[HttpProtocol] ParseFirstLine Error " << request << logger::endl;
+            logger::info << "[HttpProtocol] ParseFirstLine Error " << request;
             return -1;
         }
         const char* pos = strrchr(header[1].c_str(),'?');

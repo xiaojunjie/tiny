@@ -18,8 +18,8 @@ struct B{
             return new A;
         }
 void print(int i){
-   //logger::info << i << i << i << logger::endl;
-   logger::debug << logger::endl;
+   logger::info << i << i << i << logger::endl;
+   //logger::debug << logger::endl;
 }
 int main(){
    logger::init("./",logger::Debug);

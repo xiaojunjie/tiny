@@ -10,40 +10,40 @@ namespace logger{
     typedef enum {Debug, Info, Warm, Error, Fatal} Level;
     class logstream{
     public:
-        logstream(Level l):loglevel(l){}
+        logstream(Level l):type(l){}
         ~logstream();
         std::ostringstream msgBuf;
         static sem_t sem_msg;
         static std::mutex log_mutex;
         static std::ofstream logfile;
         static std::queue<std::string> msgQueue;
-        static Level level;
+        static Level level; // Log Level of Server
 
         template <typename T>
         logstream& operator<<(const T&);
 
         typedef logstream& (*end_fun)(logstream&);
         logstream& operator<<(end_fun);
-        logstream *prev;
-        logstream *next;
-        Level loglevel;
+        const Level type; // current Log Level of logstream
         void dump();
     };
     typedef logstream& (*end_fun)(logstream&);
 
     template <typename T>
     logstream& logstream::operator<<(const T& x){
-        const static char* levelmsg[] = {"Debug","Info","Warm","Error","Fatal"};
-        std::string buf;
-        time_t now = time(NULL);
-        char tmp[24];
-        strftime(tmp,sizeof(tmp),"%F %X",localtime(&now));
-        buf += "[";
-        buf += tmp;
-        buf += "] ";
-        buf += levelmsg[loglevel];
-        buf += ": ";
-        this->msgBuf << buf << x;
+        if( type >= level   ){
+            const static char* levelmsg[] = {"Debug","Info","Warm","Error","Fatal"};
+            std::string buf;
+            time_t now = time(NULL);
+            char tmp[24];
+            strftime(tmp,sizeof(tmp),"%F %X",localtime(&now));
+            buf += "[";
+            buf += tmp;
+            buf += "] ";
+            buf += levelmsg[type];
+            buf += ": ";
+            this->msgBuf << buf << x;
+        }
         return *this;
     }
     

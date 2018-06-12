@@ -1,4 +1,5 @@
 #include "http_message.h"
+#include <algorithm>
 #include <iostream>
 namespace tiny{
 
@@ -90,6 +91,7 @@ int HttpRequest::SetUri(string str){
     return uri.length();
 }
 int HttpRequest::SetMethod(string str){
+    std::transform(str.begin(), str.end(),str.begin(), ::toupper);
     method = str;
     return method.length();
 }

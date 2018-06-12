@@ -20,28 +20,11 @@ namespace logger{
     Level logstream::level;
     std::mutex logstream::log_mutex;
     sem_t logstream::sem_msg;
-    //std::mutex logstream::out_mutex;
-    //logstream debug(Debug);
-    //logstream info(Info);
-    //logstream warm(Warm);
-    //logstream error(Error);
-    //logstream fatal(Fatal);
-    //static logstream debug_next(Debug);
-    //static logstream info_next(Info);
-    //static logstream warm_next(Warm);
-    //static logstream error_next(Error);
-    //static logstream fatal_next(Fatal);
     LogBoot debug = {Debug};
     LogBoot info = {Info};
     LogBoot warm = {Warm};
     LogBoot error = {Error};
     LogBoot fatal = {Fatal};
-    static void bind(logstream& a, logstream& b){
-        a.next = &b;
-        b.prev = &a;
-        a.prev = NULL;
-        b.next = NULL;
-    }
     static void writeToFile(){
         while(1){
             P(&logstream::sem_msg);    /* Wait for  msg */
@@ -82,18 +65,19 @@ namespace logger{
     }
 
     void logstream::dump(){
-        msgBuf << "\n";
-        log_mutex.lock();
-        msgQueue.push(msgBuf.str());
-        log_mutex.unlock();
-        V(&sem_msg);
-        msgBuf.clear();
-        msgBuf.str("");
+        if( type >= level   ){
+            msgBuf << "\n";
+            log_mutex.lock();
+            msgQueue.push(msgBuf.str());
+            log_mutex.unlock();
+            V(&sem_msg);
+            msgBuf.clear();
+            msgBuf.str("");
+        }
     }
 
-    // logger::debug << logger::endl;
     logstream& logstream::operator<<(end_fun manip){
-        if( loglevel >= level  ){
+        if( type >= level  ){
             manip(*this);
         }
         return *this;

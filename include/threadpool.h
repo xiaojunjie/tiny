@@ -73,7 +73,7 @@ int ThreadPool<T>::extend(T *p){
         }
     }
     mtx.unlock();
-    logger::debug << "thread extend to " << count+j << logger::endl;
+    logger::debug << "thread extend to " << count+j;
     return count+j;
 }
 
@@ -81,7 +81,7 @@ template<class T>
 template<class Q>
 int ThreadPool<T>::halve(Q* s){
     int count = conut();
-    logger::debug << count/2 <<" thread need to exit" << logger::endl;
+    logger::debug << count/2 << " thread need to exit";
     for (int i = count/2; i > 0; i--) {
         s->insert(NULL);
     }
@@ -90,13 +90,13 @@ int ThreadPool<T>::halve(Q* s){
 
 template<class T>
 int ThreadPool<T>::remove(bool *p){
-    logger::debug << "1 thread is exiting ... " << logger::endl;
+    logger::debug << "1 thread is exiting ... ";
     mtx.lock();
     if(p)
         *p = false;
     mtx.unlock();
     int n = conut();
     if(p)
-        logger::debug <<" 1 thread exit, " << n << " remain." << logger::endl;
+        logger::debug <<" 1 thread exit, " << n << " remain.";
     return n;
 }

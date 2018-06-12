@@ -27,3 +27,13 @@ test:
 
 curl:
 	curl 127.0.0.1:8888/ -v &
+
+# link -> vector
+# mutex[] 1vs1 no backup
+# if n = 0          p
+#    p               
+# .
+# .
+# .                 sort
+# if n = 0          v
+#    v

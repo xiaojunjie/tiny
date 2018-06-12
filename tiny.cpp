@@ -2,6 +2,9 @@
 #include <sstream>
 #include <regex>  
 #include <iostream>
+#include <unistd.h>
+#include <time.h>
+
 namespace tiny {
 
 const string Tiny::version = "1.0";
@@ -16,10 +19,11 @@ Tiny::Tiny(const string & filename) {
 			ServerConfig.insert ( pair<string,string>(cm[1],cm[2]) );
 		}
 	}
-    logger::init(ServerConfig["log"], LOGLEVEL);
-    logger::info << "Tiny Web Server "<< version << logger::endl;
+    logger::Level loglevel = (logger::Level) atoi(ServerConfig["loglevel"].c_str());
+    logger::init(ServerConfig["logpath"], loglevel);
+    logger::info << "Tiny Web Server "<< version;
 	for(auto const& item: ServerConfig){
-		logger::info << "[Config]" << item.first << " = " << item.second << logger::endl;
+		logger::info << "[Config]" << item.first << " = " << item.second;
 	}
 	Template::Dir = ServerConfig["template"];
     socketQueue = new Sbuf<SocketStream>();
@@ -36,7 +40,7 @@ Tiny::~Tiny() {
     delete router;
     delete worker;
     delete socketQueue;
-    logger::info << "Tiny Server Shutdown..." << logger::endl;
+    logger::info << "Tiny Server Shutdown...";
     logger::destroy();
 }
 
@@ -52,7 +56,7 @@ int Tiny::run(int port) {
     return SocketStream::Wait(port, [this](int fd, struct sockaddr_in addr) {
         SocketStream *socket = new SocketStream(fd, addr);
         if(socket == NULL) {
-            logger::warm << "SocketStream error" << logger::endl;
+            logger::warm << "SocketStream error";
             return;
         }
         int len = socketQueue->insert(socket);
@@ -60,6 +64,7 @@ int Tiny::run(int port) {
             worker->extend(this);
         } else if(len <= 1) {
             worker->halve<Sbuf<SocketStream>>(socketQueue);
+            router->sort();
         }
     });
 }
@@ -71,7 +76,7 @@ void* Tiny::work(void *args) {
             worker->remove((bool*)args);
             return NULL;
         }
-        logger::debug << "work for fd " << socket->fd << logger::endl;
+        logger::debug << "work for fd " << socket->fd;
         HttpRequest *request = new HttpRequest();
         parse(socket, request);
         reply(socket, route(request));
@@ -81,7 +86,10 @@ void* Tiny::work(void *args) {
 }
 
 int Tiny::reply(SocketStream *socket, shared_ptr<HttpResponse> response) {
-    logger::debug << "[Tiny::reply] " << *response << logger::endl;
+    if(response==NULL){
+        return -1;
+    }
+    logger::debug << "[Tiny::reply] " << *response;
     return reply(socket, response.get());
 }
 
@@ -89,7 +97,7 @@ int Tiny::reply(SocketStream *socket, const HttpResponse *response) {
     if(response == NULL || socket == NULL) {
         return -1;
     } else if(HttpProtocol::SendMessage(*socket, *response) < 0) {
-        logger::error << "[Tiny] Reply Error " << *response << logger::endl;
+        logger::error << "[Tiny] Reply Error " << *response;
     }
     return 1;
 }
@@ -98,19 +106,22 @@ shared_ptr<HttpResponse> Tiny::route(HttpRequest *request) {
     if(request == NULL) {
         return NULL;
     }
-    const route_t * route_p = router->assign(*request);
-    if(route_p != NULL) {
-        if(route_p->is_static) {
+
+    route_t route_map;
+    int status = router->assign(*request,route_map);
+
+    if(status > -1) {
+        if(route_map.is_static) {
             vector<string> args = {request->GetUri()};
-            return shared_ptr<HttpResponse>( route_p->make_response(args) );
+            return shared_ptr<HttpResponse>( route_map.make_response(args) );
         } else {
             vector<string> args;
-            for(const auto &item : route_p->query) {
+            for(const auto &item :route_map.query) {
                 string value = request->GetQuery(item);
-                args.push_back(value);
+                args.emplace_back(value);
             }
-			args.push_back(request->GetBody());
-            return shared_ptr<HttpResponse>( route_p->make_response(args) );
+			args.emplace_back(request->GetBody());
+            return shared_ptr<HttpResponse>( route_map.make_response(args) );
         }
     }
     return NULL;
@@ -154,15 +165,15 @@ Tiny& Tiny::route(string uri, const make_response_function &callback) {
 
 int Tiny::parse(SocketStream *socket, HttpRequest *request) {
     if(request == NULL || socket == NULL) {
-        logger::info << " [parse error] " << *request << logger::endl;
+        logger::info << " [parse error] " << *request;
     } else if(HttpProtocol::ParseFirstLine(*socket, *request) < 1) {
-        logger::info << " [parse error 0] " << *request << logger::endl;
+        logger::info << " [parse error 0] " << *request;
     } else if(HttpProtocol::ParseHeader(*socket, *request) < 1) {
-        logger::info << " [parse error 1] " << *request << logger::endl;
+        logger::info << " [parse error 1] " << *request;
     } else if(HttpProtocol::ParseBody(*socket, *request) < 0) {
-        logger::info << " [parse error 2] " << *request << logger::endl;
+        logger::info << " [parse error 2] " << *request;
     }
-    logger::debug << "[Tiny::parse] " << *request << logger::endl;
+    logger::debug << "[Tiny::parse] " << *request;
     return 1;	
 }
 
