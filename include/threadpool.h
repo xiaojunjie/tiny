@@ -14,7 +14,7 @@ public:
     int extend(T *);
     template<class Q> int halve(Q*);
     int conut();
-    int remove(bool *);
+    bool remove(bool *);
 private:
     bool tid[THREAD_MAX];
     mutex mtx; // /* Protects accesses to tid */
@@ -23,11 +23,9 @@ private:
 template<class T>
 int ThreadPool<T>::conut(){
     int i,j;
-    mtx.lock();
     for (i = 0,j = 0; i < THREAD_MAX; i++){
         j += tid[i];
     }
-    mtx.unlock();
     return j;
 }
 
@@ -60,10 +58,10 @@ ThreadPool<T>::~ThreadPool(){}
 
 template<class T>
 int ThreadPool<T>::extend(T *p){
+    mtx.lock();
     int count = conut();
     int add = MIN(count,THREAD_MAX-count);
     int i,j;
-    mtx.lock();
     for (i=0, j=0; i < THREAD_MAX && j<add; i++) {
         if(!tid[i]){
             std::thread t(&T::work,p,tid+i);
@@ -73,14 +71,16 @@ int ThreadPool<T>::extend(T *p){
         }
     }
     mtx.unlock();
-    logger::debug << "thread extend to " << count+j;
+    logger::info << "[threadpool]: " << count << "->" <<count+j;
     return count+j;
 }
 
 template<class T>
 template<class Q>
 int ThreadPool<T>::halve(Q* s){
+    mtx.lock();
     int count = conut();
+    mtx.unlock();
     logger::debug << count/2 << " thread need to exit";
     for (int i = count/2; i > 0; i--) {
         s->insert(NULL);
@@ -89,14 +89,17 @@ int ThreadPool<T>::halve(Q* s){
 }
 
 template<class T>
-int ThreadPool<T>::remove(bool *p){
-    logger::debug << "1 thread is exiting ... ";
+bool ThreadPool<T>::remove(bool *p){
+    if(p==NULL)
+        return false;
     mtx.lock();
-    if(p)
+    int a = conut();
+    bool enable = a>THREAD_INIT;
+    if(enable){
         *p = false;
+    }
     mtx.unlock();
-    int n = conut();
-    if(p)
-        logger::debug <<" 1 thread exit, " << n << " remain.";
-    return n;
+    if(enable)
+        logger::info <<"[threadpool]: " << a << "->" << a-1;
+    return enable;
 }

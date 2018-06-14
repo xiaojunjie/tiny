@@ -72,16 +72,16 @@ int Tiny::run(int port) {
 void* Tiny::work(void *args) {
     while (1) {
         SocketStream *socket = socketQueue->remove();
-        if(socket == NULL) {
-            worker->remove((bool*)args);
+        if(socket == NULL && worker->remove((bool*)args) ){
             return NULL;
+        }else{
+            logger::debug << "work for fd " << socket->fd;
+            HttpRequest *request = new HttpRequest();
+            parse(socket, request);
+            reply(socket, route(request));
+            delete request;
+            delete socket;
         }
-        logger::debug << "work for fd " << socket->fd;
-        HttpRequest *request = new HttpRequest();
-        parse(socket, request);
-        reply(socket, route(request));
-        delete request;
-        delete socket;
     }
 }
 
