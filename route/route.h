@@ -46,6 +46,7 @@ public:
                const std::string& method = "GET");
     int assign(const HttpRequest &, route_t &);
     int sort();
+    HttpResponse* Get404Response();
     static set<string> ParseType(const HttpRequest &); // for request
     static string ParseSuffix(const HttpRequest &); // for request
     static vector<string> ParseQuery(const string &); // for self

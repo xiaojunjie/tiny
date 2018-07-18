@@ -8,8 +8,9 @@ const string HttpMessage::HEADER_TRANSFER_ENCODING = "transfer-encoding";
 const string HttpMessage::HEADER_CONTENT_TYPE = "content-type";
 const string HttpMessage::HEADER_SERVER = "server";
 const string HttpMessage::HEADER_ACCEPT = "accept";
+const string HttpMessage::HEADER_CONNECTION = "connection";
 const string HttpMessage::MessageOK = "Ok";
-const string HttpMessage::HttpVersion = "HTTP/1.0";
+const string HttpMessage::HttpVersion = "HTTP/1.1";
 const string HttpMessage::TYPE_ALL = "*/*";
 const string HttpMessage::TYPE_TEXT_HTML = "text/html";
 const string HttpMessage::TYPE_TEXT_CSS = "text/css";
@@ -74,6 +75,12 @@ string HttpMessage::GetHeader(string key) const{
         return p->second;
     else
         return "";
+}
+HttpRequest::HttpRequest(){
+    status = Ready;
+}
+HttpRequest::~HttpRequest(){
+    status = Over;
 }
 string HttpRequest::GetFirstLine() const{
     ostringstream line;
@@ -141,6 +148,7 @@ HttpResponse::HttpResponse(string str, string type, int code){
     SetHeader(HttpMessage::HEADER_CONTENT_LENGTH, body.length());
     SetHeader(HttpMessage::HEADER_CONTENT_TYPE, type);
 }
+
 string HttpResponse::GetFirstLine() const{
     ostringstream line;
     line << version << " "
@@ -148,4 +156,6 @@ string HttpResponse::GetFirstLine() const{
          << message;
     return line.str();
 }
+
+
 }

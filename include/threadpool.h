@@ -1,6 +1,6 @@
 #pragma once
 
-#define THREAD_INIT 1
+#define THREAD_INIT 2
 #define THREAD_MAX 128
 #include <mutex>
 #include <thread>
@@ -96,7 +96,7 @@ bool ThreadPool<T>::remove(bool *p){
     int a = conut();
     bool enable = a>THREAD_INIT;
     if(enable){
-        *p = false;
+        *p = false; // free
     }
     mtx.unlock();
     if(enable)

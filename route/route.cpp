@@ -32,18 +32,28 @@ namespace tiny{
 			<< "static: " << route.is_static << ", "
 			<< "count: " << route.count << ".";
 	}
-	const initializer_list<string> Route::STATIC_FILES = {"html","css","js","xml","ico","png","jpg","gif","txt"};
+	const initializer_list<string> Route::STATIC_FILES = {"html","css","js","xml","ico","png","jpg","gif","txt","ttf","woff2","woff"};
 
 	Route::Route(const make_response_function &callback){
         default_route.make_response = callback;
         default_route.is_static = true;
         default_route.method = "GET";
 	}
+
 	Route::~Route(){
         for(auto& p: route_list){
             delete p;
         }
 	}
+
+    HttpResponse* Route::Get404Response(){
+        static vector<string> argv(0);
+        if(default_route.make_response!=NULL)
+            return default_route.make_response(argv);
+        else
+            return NULL;
+    }
+
 	int Route::append(const string& uri,
                       const make_response_function& callback,
                       bool is_static, 

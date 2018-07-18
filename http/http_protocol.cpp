@@ -17,6 +17,8 @@ namespace tiny{
         return elems;
     }
     int HttpProtocol::ParseFirstLine(SocketStream &socket, HttpRequest& request){
+        if(request.status != Ready)
+            return 0;
         std::string buf = socket.readline();
         std::vector<std::string> header = split(std::string(buf), ' ');
         if(header.size()==3){
@@ -42,6 +44,8 @@ namespace tiny{
         return 1;
     }
     int HttpProtocol::ParseHeader(SocketStream &socket, HttpRequest& request){
+        if(request.status != FirstLine)
+            return 0;
         char buf[MAXLINE];
         const static int MaxHeaderSize = 64;
         int i;
@@ -75,6 +79,8 @@ namespace tiny{
     }
 
     int HttpProtocol::ParseBody(SocketStream &socket, HttpRequest& request){
+        if(request.status != Header)
+            return 0;
 		if( request.GetMethod().compare("POST") !=0 )
 			return 0;
 		int content_length = atoi( request.GetHeader(HttpMessage::HEADER_CONTENT_LENGTH).c_str() );
@@ -101,6 +107,23 @@ namespace tiny{
 		}else{
 			return 0;
 		}
+    }
+
+    int HttpProtocol::ConnectionHandler(HttpRequest* request, shared_ptr<HttpResponse> response){
+        const static string type[2] = {
+           "close",
+           "keep-alive"
+        };
+        if(request == NULL || response == NULL)
+            return -1;
+        string request_connection = request->GetHeader(HttpMessage::HEADER_CONNECTION);
+        string response_connection = response->GetHeader(HttpMessage::HEADER_CONNECTION);
+        if(response_connection==""){
+            response->SetHeader(HttpMessage::HEADER_CONNECTION,request_connection);
+            return request_connection==type[0]?0:1;
+        }else{
+            return response_connection==type[0]?0:1;
+        }
     }
 
     int HttpProtocol::SendMessage(SocketStream &socket, const HttpResponse &response){

@@ -4,6 +4,20 @@
 #include <string.h>
 #include <iostream>
 namespace tiny{
+    int SocketStream::listenfd = -1;
+    static int make_socket_non_blocking(int sfd){
+        int flags, s;
+        flags = fcntl(sfd, F_GETFL, 0);
+        if(flags == -1){
+           return -1;                          
+        }
+        flags |= O_NONBLOCK;
+        s = fcntl(sfd, F_SETFL, flags);
+        if(s == -1){
+            return -1;                              
+        }
+        return 0;
+    }
     int SocketStream::Open_listenfd(int port){
         int listenfd, optval=1;
         struct sockaddr_in serveraddr;
@@ -29,59 +43,127 @@ namespace tiny{
             throw std::runtime_error(strerror(errno));
         return listenfd;
     }
-    int SocketStream::Accept(int s, struct sockaddr *addr, socklen_t *addrlen){
-        int rc;
-        if ((rc = accept(s, addr, addrlen)) < 0)
-                throw std::runtime_error(strerror(errno));
+    int SocketStream::Accept(struct sockaddr *addr, socklen_t *addrlen){
+        static std::mutex mtx;
+        mtx.lock();
+        int rc = accept(listenfd, addr, addrlen);
+        mtx.unlock();
+        if (rc < 0){
+            if(errno!=EAGAIN)
+                logger::error << "[socket] accept: " << strerror(errno);
+        }else{
+            make_socket_non_blocking(rc);
+        }
         return rc;
     }
     void SocketStream::Close(int fd){
-        int rc;
-        if ((rc = close(fd)) < 0)
+        if (close(fd) < 0){
             throw std::runtime_error(strerror(errno));
-        else
-            logger::debug << "Close fd " << fd << logger::endl;
-
+        }else{
+            logger::debug << "close fd " << fd ;
+        }
     }
-    int SocketStream::Wait(int port, std::function<void(int,struct sockaddr_in)> callback){
-        struct sockaddr_in clientaddr;
-        int listenfd = Open_listenfd(port);
-        socklen_t clientlen = sizeof(clientaddr);
-        while (1) {
-    		int fd = Accept(listenfd, (struct sockaddr *)&clientaddr, &clientlen);
-            if(fd >= 0){
-                callback(fd,clientaddr);
-            }else{
-                logger::error << "connfd: " << fd << logger::endl;
+    int SocketStream::bind_noticefd(int efd, int noticefd){
+        struct epoll_event event;
+        event.data.fd = noticefd;
+        event.events = EPOLLIN | EPOLLET;
+        int s = epoll_ctl(efd, EPOLL_CTL_ADD, noticefd, &event);
+        if(s==-1){
+            logger::error << "[socket] bind_noticefd: " << strerror(errno);
+        }
+        return s;
+    }
+    int SocketStream::add_connect(int efd, int infd, void* ptr){
+        struct epoll_event event;
+        event.data.ptr = ptr;
+        event.events = EPOLLIN | EPOLLET;
+        int s = epoll_ctl(efd, EPOLL_CTL_ADD, infd, &event);
+        if(s==-1){
+            logger::error << "[socket] add_connect" << strerror(errno);
+        }
+        return s;
+    }
+    int SocketStream::Wait(int port, std::function<void()> callback){
+        listenfd = Open_listenfd(port);
+        int efd = epoll_create1(0);
+        if( efd<0 || 
+            listenfd<0 || 
+            make_socket_non_blocking(listenfd)<0 || 
+            bind_noticefd(efd,listenfd)<0 )
+            throw std::runtime_error(strerror(errno));
+        struct epoll_event event;
+        while(1){
+            int n = epoll_wait(efd, &event, 1, -1);
+            if (event.events & EPOLLIN){
+                callback();
             }
         }
-        return 1;
+        return 0;
+        // struct sockaddr_in clientaddr;
+        // socklen_t clientlen = sizeof(clientaddr);
+        // while (1) {
+        //     int infd = Accept(listenfd, (struct sockaddr *)&clientaddr, &clientlen);
+        //     if(infd >= 0){
+        //         callback(infd,clientaddr);
+        //     }else{
+        //         logger::error << "connfd: " << infd << logger::endl;
+        //     }
+        // }
+        // return 0;
     }
+
     SocketStream::SocketStream(int a, struct sockaddr_in addr):
         fd(a),
         clientaddr(addr){
+            reply_cnt = 0;
             cnt = 0;
             buf = new char[BUFSIZE];
+            bufptr = buf;
             const static struct timeval tv = {TIMEOUT,0};
             setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
     }
+
     SocketStream::~SocketStream(){
         Close(fd);
         free(buf);
     }
+    ssize_t SocketStream::receive(){
+        int n = 0;
+        for(char* end = buf+BUFSIZE; bufptr<end; bufptr+=n){
+            n = read(fd, bufptr, end-bufptr);
+            std::cout << "read " << n << " bytes" << std::endl;
+            if(n<=0)
+                break;
+        }
+        if(n==0 && bufptr<buf){
+            logger::debug << "[socket] EOF";
+        }else if(n == -1){
+            if(errno == EAGAIN)
+                ;//reset_oneshot(efd,fd,(void*)this);
+            else
+                logger::error << "[socket] read error: " << strerror(errno);
+        }else{
+            logger::info << "[socket] read overflow";
+        }
+        return bufptr-buf;
+    }
     ssize_t SocketStream::readn(char* usrbuf, size_t n){
-        while ( cnt <= 0 ) { /* Refill if buf is empty */
+        if ( cnt <= 0 ) { /* Refill if buf is empty */
 			cnt = read(fd, buf, BUFSIZE);
             if (cnt < 0) {
-                if (errno != EINTR) /* Interrupted by sig handler return */
+                if(errno==EAGAIN)
+                    return 0;
+                else{
+                    logger::error << "[Socket] readn: errno " << errno;
                     return -1;
+                }
             }else if (cnt == 0){ /* EOF */
                 return 0;
             }else{
                 bufptr = buf;  /* Reset buffer ptr */
             }
         }
-
+        
         /* Copy min(n, cnt) bytes from internal buf to user buf */
         int read_cnt = MIN(cnt,n);
         memcpy(usrbuf, bufptr, read_cnt);

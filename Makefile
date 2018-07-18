@@ -15,6 +15,7 @@ libtiny.a: tiny.o tool.o $(LIB_OBJS)
 
 .PHONY: example
 example:
+	@(clear)
 	@( cd example; make && ./example_server tiny.cfg )
 
 .PHONY: clean
@@ -28,12 +29,7 @@ test:
 curl:
 	curl 127.0.0.1:8888/ -v &
 
-# link -> vector
-# mutex[] 1vs1 no backup
-# if n = 0          p
-#    p               
-# .
-# .
-# .                 sort
-# if n = 0          v
-#    v
+# sudo sysctl -w net.core.somaxconn=1024
+# 
+# https://stackoverflow.com/questions/32464818/does-epolloneshot-prevent-multiple-events-on-a-single-descriptor-from-being-retu
+# it should be able to read after reset EPOLLONESHOT,but not

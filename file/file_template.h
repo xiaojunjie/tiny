@@ -14,7 +14,7 @@ public:
     string render(vector<string>);
 	static string Dir;
 	static string TPL404;
-    static string ReadFile(const string &);
+    static int ReadFile(const string &,string &);
     static vector<string> ReadFileLines(const string &);
 protected:
     string tpl;

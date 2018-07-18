@@ -16,20 +16,24 @@ std::string Template::render(){
 }
 
 Template::Template(const string & filename){
-    tpl = ReadFile(Dir+filename);
+    ReadFile(Dir+filename,tpl);
 }
-string Template::ReadFile(const string & filename){
+int Template::ReadFile(const string & filename, string & userbuf){
     ifstream file(filename, std::ifstream::binary | std::ifstream::in);
+    if(!file)
+        return -1;
     //string str((std::istreambuf_iterator<char>(file)),
     //             std::istreambuf_iterator<char>());
     stringstream buffer;
     buffer << file.rdbuf();
     file.close();
-    return buffer.str();
+    userbuf = buffer.str();
+    return userbuf.length();
 }
 vector<string> Template::ReadFileLines(const string & filename){
-	string content = ReadFile(filename);
 	vector<string> elems;
+	string content;
+    int n = ReadFile(filename,content);
 	stringstream ss(content);
 	string item;
 	while (getline(ss, item)) {

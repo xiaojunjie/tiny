@@ -31,12 +31,12 @@ namespace tiny{
     template <class T>
     int Sbuf<T>::insert(T* item){
         logger::debug << "prepare to insert 1 item into sbuf ... " << logger::endl;
-        P(&slots);                          /* Wait for available slot */
+        //P(&slots);                          /* Wait for available slot */
         P(&mutex);                          /* Lock the buffer */
         queue.push_back(item);
         int count = queue.size();
         V(&mutex);                          /* Unlock the buffer */
-        V(&items);                          /* Announce available item */
+        //V(&items);                          /* Announce available item */
         logger::debug << count <<" item in sbuf after insert" << logger::endl;
         return count;
     }
@@ -44,13 +44,19 @@ namespace tiny{
     template <class T>
     T* Sbuf<T>::remove(){
         logger::debug << "prepare to get 1 item from sbuf ... " << logger::endl;
-        P(&items);                          /* Wait for available item */
+        T *p;
+        int count = 0;
+        //P(&items);                          /* Wait for available item */
         P(&mutex);                          /* Lock the buffer */
-        T* p = queue[0];
-        queue.erase(queue.begin());
-        int count = queue.size();
+        if(queue.empty()){
+            p = NULL;
+        }else{
+            p = queue[0];
+            queue.erase(queue.begin());
+            count = queue.size();
+        }
         V(&mutex);                          /* Unlock the buffer */
-        V(&slots);                          /* Announce available slot */
+        //V(&slots);                          /* Announce available slot */
         logger::debug << count <<" item in sbuf after remove" << logger::endl;
         return p;
     }
