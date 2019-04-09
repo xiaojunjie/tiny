@@ -17,7 +17,7 @@ namespace tiny{
             return TINY_ERROR;
         tiny_epoll_event_t event;
         event.data.ptr = socket;
-        event.events = EPOLLIN | EPOLLET;
+        event.events = EPOLLIN;
         if(epoll_ctl(efd, EPOLL_CTL_ADD, socket->fd, &event)<0)
             throw std::runtime_error(strerror(errno));
         else

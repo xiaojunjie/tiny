@@ -66,7 +66,7 @@ namespace tiny{
     static tiny_int_t bind_noticefd(int efd, tiny_socket_fd_t noticefd){
         struct epoll_event event;
         event.data.fd = noticefd;
-        event.events = EPOLLIN | EPOLLET;
+        event.events = EPOLLIN;
         int s = epoll_ctl(efd, EPOLL_CTL_ADD, noticefd, &event);
         if(s==-1){
             logger::error << "[socket] bind_noticefd: " << strerror(errno);
@@ -75,12 +75,11 @@ namespace tiny{
     }
 
     tiny_int_t TinySocketStream::wait(tiny_socket_port_t port, tiny_socket_listen_handler callback){
-        // 这里要改成LT
         int listenfd = open_listenfd(port);
         int efd = epoll_create1(0);
         if( efd<0 || 
             listenfd<0 || 
-            make_socket_non_blocking(listenfd)<0 || 
+            //make_socket_non_blocking(listenfd)<0 || 
             bind_noticefd(efd,listenfd)<0 )
             throw std::runtime_error(strerror(errno));
         struct epoll_event event;

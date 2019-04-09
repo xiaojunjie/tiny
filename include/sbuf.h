@@ -1,8 +1,9 @@
 #pragma once
 
 #include "tool.h"
-#include <vector>
+#include <queue>
 #include "file.h"
+#include <mutex>
 #define LISTENQ_G 4
 #define LISTENQ_L 1024
 namespace tiny{
@@ -15,35 +16,34 @@ namespace tiny{
         T* remove();
         int size();
     private:
-        std::vector<T*> queue;
+        std::queue<T*> queue;
         const int n;             /* Maximum number of slots */
-        sem_t mutex;       /* Protects accesses to buf */
+        std::mutex q_mutex;       /* Protects accesses to buf */
         sem_t slots;       /* Counts available slots */
         sem_t items;       /* Counts available items */
     };
 
     template <class T>
     Sbuf<T>::Sbuf():n(LISTENQ_G){
-        Sem_init(&mutex, 0, 1);      /* Binary semaphore for locking */
         Sem_init(&slots, 0, n);      /* Initially, buf has n empty slots */
         Sem_init(&items, 0, 0);      /* Initially, buf has zero data items */
     }
 
     template <class T>
     int Sbuf<T>::size(){
-        P(&mutex);                          /* Lock the buffer */
+        q_mutex.lock();
         int count = queue.size(); 
-        V(&mutex);                          /* Unlock the buffer */
+        q_mutex.unlock();
         return count;
     }
     template <class T>
     int Sbuf<T>::insert(T* item){
         logger::debug << "prepare to insert 1 item into sbuf ... " << logger::endl;
         P(&slots);                          /* Wait for available slot */
-        P(&mutex);                          /* Lock the buffer */
-        queue.push_back(item);
+        q_mutex.lock();
+        queue.push(item);
         int count = queue.size();
-        V(&mutex);                          /* Unlock the buffer */
+        q_mutex.unlock();
         V(&items);                          /* Announce available item */
         logger::debug << count <<" item in sbuf after insert" << logger::endl;
         return count;
@@ -55,15 +55,15 @@ namespace tiny{
         T *p;
         int count = 0;
         P(&items);                          /* Wait for available item */
-        P(&mutex);                          /* Lock the buffer */
+        q_mutex.lock();
         if(queue.empty()){
             p = NULL;
         }else{
-            p = queue[0];
-            queue.erase(queue.begin());
+            p = queue.front();
+            queue.pop();
             count = queue.size();
         }
-        V(&mutex);                          /* Unlock the buffer */
+        q_mutex.unlock();
         V(&slots);                          /* Announce available slot */
         logger::debug << count <<" item in sbuf after remove" << logger::endl;
         return p;

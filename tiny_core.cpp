@@ -66,7 +66,6 @@ void *Tiny::work(void *args) {
             logger::debug << "[Tiny] socket_handler: " << socket->fd << " -> " << epoll.efd
                           << " on listenfd  " << listenfd;
         }else{
-            epoll.remove(socket);
             delete socket;
             std::cout << "!!!!!!" << std::endl;
             continue;

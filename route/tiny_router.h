@@ -45,7 +45,7 @@ struct tiny_router_conf_t{
         return result;
     }
 };
-typedef std::vector<tiny_router_conf_t> tiny_router_t;
+typedef std::vector< tiny_router_conf_t > tiny_router_t;
 tiny_int_t tiny_router_append(tiny_router_t &, tiny_string_t, tiny_http_handler_pt);
 std::ostream &operator<<(std::ostream &, const tiny_router_conf_t&);
 
