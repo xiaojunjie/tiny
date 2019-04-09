@@ -13,6 +13,7 @@ namespace tiny{
         // ~Sbuf();
         int insert(T*);
         T* remove();
+        int size();
     private:
         std::vector<T*> queue;
         const int n;             /* Maximum number of slots */
@@ -29,14 +30,21 @@ namespace tiny{
     }
 
     template <class T>
+    int Sbuf<T>::size(){
+        P(&mutex);                          /* Lock the buffer */
+        int count = queue.size(); 
+        V(&mutex);                          /* Unlock the buffer */
+        return count;
+    }
+    template <class T>
     int Sbuf<T>::insert(T* item){
         logger::debug << "prepare to insert 1 item into sbuf ... " << logger::endl;
-        //P(&slots);                          /* Wait for available slot */
+        P(&slots);                          /* Wait for available slot */
         P(&mutex);                          /* Lock the buffer */
         queue.push_back(item);
         int count = queue.size();
         V(&mutex);                          /* Unlock the buffer */
-        //V(&items);                          /* Announce available item */
+        V(&items);                          /* Announce available item */
         logger::debug << count <<" item in sbuf after insert" << logger::endl;
         return count;
     }
@@ -46,7 +54,7 @@ namespace tiny{
         logger::debug << "prepare to get 1 item from sbuf ... " << logger::endl;
         T *p;
         int count = 0;
-        //P(&items);                          /* Wait for available item */
+        P(&items);                          /* Wait for available item */
         P(&mutex);                          /* Lock the buffer */
         if(queue.empty()){
             p = NULL;
@@ -56,7 +64,7 @@ namespace tiny{
             count = queue.size();
         }
         V(&mutex);                          /* Unlock the buffer */
-        //V(&slots);                          /* Announce available slot */
+        V(&slots);                          /* Announce available slot */
         logger::debug << count <<" item in sbuf after remove" << logger::endl;
         return p;
     }

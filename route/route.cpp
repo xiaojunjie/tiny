@@ -138,7 +138,8 @@ namespace tiny{
                 status = i;
             }
         }
-        if(status<0 && MatchType(default_route,request)){
+        //if(status<0 && MatchType(default_route,request)){
+        if(status<0){
             result = default_route;
             status = route_list.size();
         }

@@ -42,10 +42,17 @@ int main(int argc, char **argv){
 
     // int fd= open("./test.xml",O_RDONLY);
     // int a = read(fd,buf,1024);
-    std::string buf = "asd";
+    std::string buf = "GET / HTTP/1.1\r\n";
+	write(clientfd, buf.c_str(), 100);
+    std::cout << 0 << std::endl;
+    sleep(15);
+    std::cout << 1 << std::endl;
+    buf = "ASDSDSDSDSD\r\n";
 	write(clientfd, buf.c_str(), buf.length());
-    sleep(1000);
+    sleep(20);
+    std::cout << 2 << std::endl;
     close(clientfd); //line:netp:echoclient:close
+    std::cout << 3 << std::endl;
     return 1;
 }
 /* $end echoclientmain */

@@ -9,7 +9,6 @@
 namespace tiny {
 
 const string Tiny::version = "1.0";
-vector<int> Tiny::noticefds;
 
 Tiny::Tiny(const string & filename) {
 	vector<string> cfgs = Template::ReadFileLines(filename);
@@ -28,12 +27,12 @@ Tiny::Tiny(const string & filename) {
 		logger::info << "[Config]" << item.first << " = " << item.second;
 	}
 	Template::Dir = ServerConfig["template"];
-    socketQueue = new Sbuf<SocketStream>();
+    socketQueue = new Sbuf<void>();
     worker = new ThreadPool<Tiny>(this);
     router = new Route([&](vector<string> argv) {
         Template tpl(Template::TPL404);
         HttpResponse *response = new HttpResponse(tpl.render(), 404);
-        response->SetHeader(HttpMessage::HEADER_CONNECTION,"close");
+        //response->SetHeader(HttpMessage::HEADER_CONNECTION,"close");
         return response;
     });
 	//static file, css, js ...
@@ -63,14 +62,15 @@ int Tiny::run(int port) {
         //    logger::warm << "SocketStream error";
         //    return;
         //}
-        //int len = socketQueue->insert(socket);
-        for(const auto& nfd: noticefds){
-            //std::cout << "noticefds: " << nfd << std::endl;
-            static uint64_t temp = 1; // temp>0
-            if( write(nfd,&temp,sizeof(temp))<0 ){
-                logger::warm << "[Tiny] notice error";
-            }
-        }
+        int len = socketQueue->insert(NULL);
+        std::cout << "len: " << len << std::endl;
+        //for(const auto& nfd: noticefds){
+        //    //std::cout << "noticefds: " << nfd << std::endl;
+        //    static uint64_t temp = 1; // temp>0
+        //    if( write(nfd,&temp,sizeof(temp))<0 ){
+        //        logger::warm << "[Tiny] notice error";
+        //    }
+        //}
         //if(len >= LISTENQ_G) {
         //    //worker->extend(this);
         //} else if(len <= 1) {
@@ -80,64 +80,59 @@ int Tiny::run(int port) {
     });
 }
 
-int Tiny::add_noticefd(int fd){
-    static std::mutex mtx;
-    mtx.lock();
-    noticefds.push_back(fd);
-    mtx.unlock();
-    return 1;
-}
-
 void* Tiny::work(void *args) {
     int efd = epoll_create1(0);
-    int noticefd = eventfd(0,EFD_NONBLOCK);
-    if(efd == -1 || noticefd == -1 || SocketStream::bind_noticefd(efd,noticefd) == -1)
+    if(efd == -1)
         return NULL;
-    add_noticefd(noticefd);
-
     struct epoll_event *events = (struct epoll_event *)calloc(MAXEVENTS, sizeof(struct epoll_event));
-    std::thread::id id = std::this_thread::get_id();
-    std::cout << "wait for notice of " << efd << " at thread " << id << std::endl;
     while(1){
-        int n = epoll_wait(efd, events, MAXEVENTS, -1);
-        for (int i = 0; i < n; i++){
-            if ((events[i].events & EPOLLERR) ||
-                (events[i].events & EPOLLHUP) ||
-                (!(events[i].events & EPOLLIN))){
-                if(events[i].data.fd != noticefd && events[i].data.ptr!=NULL){
-                    SocketStream *socket = (SocketStream *)events[i].data.ptr;
-                    //std::cout << "close " << socket->fd << " reply "<< socket->reply_cnt << std::endl;
-                    delete socket;
-                }else{
-                    logger::error <<"[Worker] " << id << " " << events[i].data.ptr; 
-                    //std::cout << "ERROR at " << events[i].data.ptr << std::endl;
+        std::cout << "wait for new connection in " << efd << std::endl;
+        socketQueue->remove();
+        std::cout << "\nget a new connection in "<< efd <<" === " << socketQueue->size() << std::endl;
+        notice_handler(efd);
+        bool connected = true;
+        while(connected){
+            std::cout << "\nwait for next request in " << efd <<" === " << socketQueue->size() << std::endl;
+            int n = epoll_wait(efd, events, MAXEVENTS, -1);
+            for (int i = 0; i < n; i++){
+                if ((events[i].events & EPOLLERR) ||
+                    (events[i].events & EPOLLHUP) ||
+                    (!(events[i].events & EPOLLIN))){
+                    if(events[i].data.ptr!=NULL){
+                        std::cout << "???" << std::endl;
+                        SocketStream *socket = (SocketStream *)events[i].data.ptr;
+                        delete socket;
+                        connected = false;
+                    }else{
+                        logger::error <<"[Worker] " << efd << " " << events[i].data.ptr; 
+                        std::cout << "ERROR at " << events[i].data.ptr << std::endl;
+                    }
+                    continue;
                 }
-                continue;
+                if( events[i].data.ptr!=NULL ){
+                    int s = http_handler(events[i]);
+                    connected = (s>0);
+                }else{
+                    std::cout << "OTHER ERROR" << std::endl;
+                    connected = false;
+                }
             }
-            if(events[i].data.fd == noticefd){
-                notice_handler(events[i],efd);
-            }else if( events[i].data.ptr!=NULL ){
-                int s = http_handler(events[i]);
-                //状态
-            }else{
-                std::cout << "OTHER ERROR" << std::endl;
-            }
+            //std::cout << "efd: "<< efd << " "<< connected << std::endl;
         }
     }
     free(events);
     return NULL;
-
 }
 
-int Tiny::notice_handler(const struct epoll_event& event, int efd){
+int Tiny::notice_handler(int efd){
     struct sockaddr_in clientaddr;
     static socklen_t clientlen = sizeof(clientaddr);
     int infd = SocketStream::Accept((struct sockaddr*)&clientaddr, &clientlen);
     if(infd>0){
-         SocketStream *socket = new SocketStream(infd,clientaddr); // need to free
-         SocketStream::add_connect(efd,infd,socket);
-         logger::debug << "[socket] accepted connection on fd " << infd 
-                       << " by " << std::this_thread::get_id();
+         // attach SocketStream to notice.event.data.ptr
+         SocketStream *socket = new SocketStream(infd,clientaddr,efd); // need to free
+         std::cout << "accepted connection on fd " << infd 
+                       << " by " << efd << std::endl;
     }
     return infd;
 }
@@ -146,27 +141,58 @@ int Tiny::http_handler(const struct epoll_event& event){
     if(event.data.ptr==NULL)
         return -1;
     SocketStream *socket = (SocketStream *)event.data.ptr;
-    HttpRequest *request = new HttpRequest();
+    HttpRequest *request = (HttpRequest *)socket->handling;
+    if(request==NULL){
+        request = new HttpRequest();
+        socket->handling = request;
+    }
     int s = parse(socket, request);
-    if(s<0){
+    std::cout << socket->fd << " s:" << s << " " << request->status << " "<< request->GetUri() << std::endl;
+    if(s==0){
+        //if(request->status == Ready){
+            delete request;
+            delete socket;
+        //}
+    }else if(s<0){
         // 非法请求
         logger::debug << "[Tiny] http_handler: parse return " << s << logger::endl;
+        delete request;
         delete socket;
     }else{
         auto response = route(request);
+        cout << "req: " << request->GetHeader("connection") << endl;
         s = HttpProtocol::ConnectionHandler(request,response);
-        reply(socket, response);
+        // s= 0[close] 1[keepalive]
         socket->reply_cnt++;
+        if(socket->reply_cnt==1){
+            response->SetHeader("connection","close");
+            s = 0;
+        }
+        reply(socket, response);
+        delete request;
+        socket->handling = NULL;
+        cout << "res: "<< s << " " <<  response->GetHeader("connection") << endl;
+        //keepalive timeout 需要设置
+        if(s==0)
+            delete socket;
     }
-    delete request;
     return s;
 }
-
+int Tiny::handle(const tiny_http_request_t* request, tiny_http_response_t* response){
+    for (const auto &item : handler_list) {
+        if (!tiny_router_locate(request,item))
+            continue;
+        if (item.handler(request, response) == TINY_SUCCESS) {
+            item.count++;
+            return TINY_SUCCESS;
+        }
+    }
+}
 int Tiny::reply(SocketStream *socket, shared_ptr<HttpResponse> response) {
     if(response==NULL){
         return -1;
     }
-    logger::debug << "[Tiny::reply] " << *response;
+    logger::debug << "[Tiny::reply] " << response->GetBody().length();
     return reply(socket, response.get());
 }
 
@@ -237,6 +263,10 @@ Tiny& Tiny::route(initializer_list<string> list) {
 }
 
 // single uri
+Tiny& Tiny::route(string uri, tiny_http_handler_pt h) {
+    router->append(uri, h);
+    return *this;
+}
 Tiny& Tiny::get(string uri, const make_response_function &callback) {
     router->append(uri, callback, false, "GET");
     return *this;
@@ -260,7 +290,7 @@ int Tiny::parse(SocketStream *socket, HttpRequest *request) {
     s = HttpProtocol::ParseBody(*socket, *request);
     if(s < 0)
         return -4;
-    return 1;	
+    return s;	
 }
 
 }

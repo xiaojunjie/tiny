@@ -10,6 +10,7 @@
 using namespace std;
 namespace tiny{
 
+typedef HttpResponse*(*tiny_http_handler_pt)(const HttpRequest*);
 typedef function<HttpResponse*(vector<string>)> make_response_function;
 
 struct route_t{
@@ -40,6 +41,7 @@ public:
     ~Route();
     vector<route_t*> route_list;
     static mutex mutex_sort;
+    int append(const std::string &, tiny_http_handler_pt);
     int append(const std::string &,
                const make_response_function &, 
                bool is_static = false, 

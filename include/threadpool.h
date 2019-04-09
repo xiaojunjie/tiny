@@ -1,6 +1,6 @@
 #pragma once
 
-#define THREAD_INIT 2
+#define THREAD_INIT 20
 #define THREAD_MAX 128
 #include <mutex>
 #include <thread>

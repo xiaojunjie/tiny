@@ -60,7 +60,7 @@ namespace tiny{
         if (close(fd) < 0){
             throw std::runtime_error(strerror(errno));
         }else{
-            logger::debug << "close fd " << fd ;
+            logger::debug << "[socket] close fd " << fd ;
         }
     }
     int SocketStream::bind_noticefd(int efd, int noticefd){
@@ -73,13 +73,25 @@ namespace tiny{
         }
         return s;
     }
-    int SocketStream::add_connect(int efd, int infd, void* ptr){
+    int SocketStream::attach(int f){
         struct epoll_event event;
-        event.data.ptr = ptr;
+        event.data.ptr = this;
         event.events = EPOLLIN | EPOLLET;
-        int s = epoll_ctl(efd, EPOLL_CTL_ADD, infd, &event);
+        int s = epoll_ctl(f, EPOLL_CTL_ADD, fd, &event);
         if(s==-1){
-            logger::error << "[socket] add_connect" << strerror(errno);
+            logger::error << "[socket] attach: " <<fd<<"->"<<f<<" "<< strerror(errno);
+        }else{
+            efd = f;
+            logger::debug << "[socket] fd " << fd << " attach to efd " << efd;
+        }
+        return s;
+    }
+    int SocketStream::detach(){
+        int s = epoll_ctl(efd, EPOLL_CTL_DEL, fd, NULL);
+        if(s==-1){
+            logger::error << "[socket] detach: " <<fd<<"->"<<efd<<" "<< strerror(errno);
+        }else{
+            logger::debug << "[socket] detach fd " <<fd<<" from "<<efd;
         }
         return s;
     }
@@ -117,15 +129,26 @@ namespace tiny{
         clientaddr(addr){
             reply_cnt = 0;
             cnt = 0;
+            efd = -1;
+            handling = NULL;
             buf = new char[BUFSIZE];
             bufptr = buf;
             const static struct timeval tv = {TIMEOUT,0};
             setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
+            logger::debug << "[socket] accept a new connection on fd " << a;
+    }
+    
+    SocketStream::SocketStream(int a, struct sockaddr_in addr, int f):
+        SocketStream(a,addr){
+        attach(f);
     }
 
     SocketStream::~SocketStream(){
+        if(efd>0)
+            detach();
         Close(fd);
-        free(buf);
+        delete[] buf;
+        std::cout << "close " << fd << " reply "<< reply_cnt << std::endl;
     }
     ssize_t SocketStream::receive(){
         int n = 0;
