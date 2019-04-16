@@ -60,7 +60,7 @@ tiny_int_t tiny_http_parse_handler(const tiny_string_t &buf,
            http_parse_header(header, request) && http_parse_body(body, request);
 }
 
-static tiny_int_t tiny_http_file_handler(const tiny_string_t& filename, tiny_http_response_t &response) {
+tiny_int_t tiny_http_file_handler(const tiny_string_t& filename, tiny_http_response_t &response) {
     tiny_string_t buf;
     tiny_string_t filetype = get_type(filename);
     tiny_int_t s = tiny_file_read(filename, buf);

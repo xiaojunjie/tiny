@@ -2,6 +2,7 @@
 
 #include "tiny_base.h"
 #include "tiny_handler.h"
+#include <list>
 namespace tiny{
 
 struct tiny_router_conf_t{
@@ -13,9 +14,7 @@ struct tiny_router_conf_t{
     tiny_http_handler_pt handler;
     tiny_flag_t flag;
     tiny_unsigned_t count;
-    tiny_router_conf_t(tiny_http_handler_pt handler):
-        tiny_router_conf_t("",handler,1)
-    {}
+
     tiny_router_conf_t(tiny_string_t uri, tiny_http_handler_pt handler):
         tiny_router_conf_t(uri,handler,0)
     {}

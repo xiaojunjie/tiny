@@ -22,7 +22,7 @@ public:
     Tiny(const tiny_string_t &);
     tiny_int_t run();
     ~Tiny();
-    Tiny& route(tiny_uri_t, tiny_http_handler_pt);
+    Tiny& get(tiny_uri_t, tiny_http_handler_pt, int flag=0);
     void* work(void *);
 private:
 	static const tiny_version_t version;

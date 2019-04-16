@@ -105,7 +105,7 @@ namespace tiny{
     TinySocketStream::~TinySocketStream(){
         close();
         delete[] buf;
-        std::cout << "close " << fd << " reply "<< reply_cnt << std::endl;
+        //std::cout << "close " << fd << " reply "<< reply_cnt << std::endl;
     }
     
    // tiny_int_t TinySocketStream::receive(){

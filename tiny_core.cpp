@@ -25,13 +25,16 @@ Tiny::Tiny(const string &filename) {
     for (auto const &item : config) {
         logger::info << "[Config]" << item.first << " = " << item.second;
     }
-    router_list.emplace_back(tiny_http_init_handler);
+    router_list.emplace_back("Init", tiny_http_init_handler, 1);
     router_list.emplace_back("/assets/", tiny_http_static_handler);
     router_list.emplace_back("/", tiny_http_index_handler, 2);
-    router_list.emplace_back(tiny_http_notfound_handler);
-    router_list.emplace_back(tiny_http_base_handler);
     socket_queue = new Sbuf<void>();
     worker = new ThreadPool<Tiny>(this);
+}
+
+Tiny& Tiny::get(tiny_uri_t str, tiny_http_handler_pt handler, int flag){
+    router_list.emplace_back(str, handler, flag);
+    return *this;
 }
 
 Tiny::~Tiny() {
@@ -42,6 +45,8 @@ Tiny::~Tiny() {
 }
 
 int Tiny::run() {
+    router_list.emplace_back("NoFound", tiny_http_notfound_handler,1);
+    router_list.emplace_back("Base", tiny_http_base_handler,1);
     int port = atoi(config["port"].c_str());
     if (port > 0)
         return run(port);
@@ -52,7 +57,7 @@ int Tiny::run() {
 int Tiny::run(tiny_port_t port) {
     return TinySocketStream::wait(port, [this](tiny_socket_fd_t listenfd) {
         int len = socket_queue->insert((void *)listenfd);
-        std::cout << "len: " << len << std::endl;
+        //std::cout << "len: " << len << std::endl;
     });
 }
 
@@ -112,6 +117,7 @@ tiny_int_t Tiny::response_handler(const tiny_http_request_t &request,
             continue;
         if (item.handler(request, response) == TINY_SUCCESS) {
             // item.count++;
+            response.header.cookie += "["+item.uri+"]";
         }
     }
     return TINY_SUCCESS;
