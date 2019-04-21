@@ -28,7 +28,7 @@ static tiny_int_t read_char(tiny_socket_t &socket, tiny_char_t* c, tiny_int_t le
 }
 
 tiny_int_t tiny_socket_read(tiny_socket_t& socket, tiny_string_t& str){
-    char buf[MAXLINE];
+    char buf[MAXLINE] = {0};
     tiny_int_t s = read_char(socket, buf, MAXLINE);
     str = tiny_string_t(buf);
     return s;
@@ -65,6 +65,8 @@ tiny_int_t tiny_socket_write(tiny_socket_t& socket, const tiny_string_t& str){
     while (nleft > 0) {
         if ((nwritten = write(socket.fd, bufp, nleft)) <= 0) {
             if (errno == EINTR) /* Interrupted by sig handler return */
+                nwritten = 0;  /* and call write() again */
+            else if (errno == EAGAIN)
                 nwritten = 0;  /* and call write() again */
             else
                 return TINY_ERROR;  /* errno set by write() */ //log

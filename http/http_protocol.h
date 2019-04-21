@@ -12,6 +12,7 @@ namespace tiny{
     std::ostream &operator<<(std::ostream &, tiny_http_response_t const &);
     std::ostream &operator<<(std::ostream &, http_request_header_t const &);
     std::ostream &operator<<(std::ostream &, http_response_header_t const &);
+    tiny_http_response_t &operator<<(tiny_http_response_t &, const tiny_string_t &);
     tiny_int_t http_parse_request_line(const tiny_string_t &, tiny_http_request_t &);
     tiny_int_t http_parse_header(const tiny_string_t &, tiny_http_request_t &);
     tiny_int_t http_parse_body(const tiny_string_t &, tiny_http_request_t &);

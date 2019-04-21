@@ -12,7 +12,6 @@
 #include "tiny_router.h"
 namespace tiny{
 
-typedef tiny_dict_t tiny_config_t;
 typedef tiny_int_t tiny_port_t;
 typedef tiny_string_t tiny_version_t;
 typedef tiny_string_t tiny_uri_t;
@@ -29,7 +28,7 @@ private:
     tiny_int_t run(tiny_port_t);
     Sbuf<void> *socket_queue;
     ThreadPool<Tiny> *worker;
-	tiny_config_t config;
+	tiny_conf_t config;
     tiny_router_t router_list;
     tiny_int_t http_handler(tiny_socket_t*);
     tiny_int_t response_handler(const tiny_http_request_t&, tiny_http_response_t&);

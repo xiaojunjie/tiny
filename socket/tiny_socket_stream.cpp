@@ -66,7 +66,7 @@ namespace tiny{
     static tiny_int_t bind_noticefd(int efd, tiny_socket_fd_t noticefd){
         struct epoll_event event;
         event.data.fd = noticefd;
-        event.events = EPOLLIN;
+        event.events = EPOLLIN; // 水平
         int s = epoll_ctl(efd, EPOLL_CTL_ADD, noticefd, &event);
         if(s==-1){
             logger::error << "[socket] bind_noticefd: " << strerror(errno);

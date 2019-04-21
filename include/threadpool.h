@@ -4,7 +4,6 @@
 #define THREAD_MAX 128
 #include <mutex>
 #include <thread>
-#include "file.h"
 using namespace std;
 template<class T> class ThreadPool{
 public:

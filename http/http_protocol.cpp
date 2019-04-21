@@ -34,6 +34,7 @@ namespace tiny{
     static constexpr auto CONNEXTION_CLOSE = "close";
     tiny_dict_t tiny_http_file_types = {
         {"html",TYPE_TEXT_HTML},
+        {"json",TYPE_APPLICATION_JSON},
         {"gif",TYPE_IMAGE_GIF},
         {"png",TYPE_IMAGE_PNG},
         {"jpg",TYPE_IMAGE_JEPG},
@@ -65,6 +66,10 @@ namespace tiny{
         buf << HEADER_CACHE_CONTROL << ": " << header.cache_control << "\r\n";
         buf << HEADER_PRAGMA << ": " << header.pragma << "\r\n";
         return out << buf.str();
+    }
+    tiny_http_response_t &operator<<(tiny_http_response_t & response, const tiny_string_t & str){
+        response.body += str;
+        return response;
     }
     std::ostream &operator<<(std::ostream &out, tiny_http_response_t const &response){
         std::ostringstream buf;
@@ -176,8 +181,20 @@ namespace tiny{
     }
 
     tiny_int_t http_parse_body(const tiny_string_t &buf, tiny_http_request_t &request){
-        request.body = buf;
-        return TINY_SUCCESS;
+        int length = std::stoi(request.header.content_length);
+        if(request.body.empty()){
+            int i = buf.find("\r\n\r\n");
+            if(i>=0)
+                request.body = buf.substr(i+4);
+            else
+                request.body = buf;
+        }else{
+            request.body += buf;
+        }
+        if(length > request.body.length())
+            return TINY_ERROR;
+        else
+            return TINY_SUCCESS;
     }
     tiny_int_t http_connettion_handler(const tiny_http_request_t &request, tiny_http_response_t &response){
         //response.header.connection = request.header.connection;
