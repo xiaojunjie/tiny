@@ -26,8 +26,8 @@ public:
 private:
 	static const tiny_version_t version;
     tiny_int_t run(tiny_port_t);
-    Sbuf<void> *socket_queue;
-    ThreadPool<Tiny> *worker;
+    Sbuf<tiny_socket_t*> socket_queue;
+    ThreadPool worker;
 	tiny_conf_t config;
     tiny_router_t router_list;
     tiny_int_t http_handler(tiny_socket_t*);

@@ -39,9 +39,9 @@ namespace tiny{
         return TINY_SUCCESS;
     }
 
-    std::vector<tiny_epoll_event_t> TinyEpoll::wait(/*tiny_epoll_handler_pt event_handler*/){
+    std::vector<tiny_epoll_event_t> TinyEpoll::wait(int timeout){
         std::vector<tiny_epoll_event_t> result;
-        int n = epoll_wait(efd, events, MAXEVENTS, 0);
+        int n = epoll_wait(efd, events, MAXEVENTS, timeout);
         if(n<0)
             throw std::runtime_error(strerror(errno));
         for (int i = 0; i < n; i++) {

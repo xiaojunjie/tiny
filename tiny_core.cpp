@@ -18,8 +18,8 @@ Tiny::Tiny(const string &filename) {
     router_list.emplace_back("Init", tiny_http_init_handler, 1);
     // router_list.emplace_back("/assets/", tiny_http_static_handler);
     router_list.emplace_back("/", tiny_http_index_handler, 2);
-    socket_queue = new Sbuf<void>();
-    worker = new ThreadPool<Tiny>(this);
+    //worker.start( std::bind(&Tiny::work, this, std::placeholders::_1) );
+    worker.start( std::bind(&Tiny::work, this, std::placeholders::_1), this );
 }
 
 Tiny &Tiny::get(tiny_uri_t str, tiny_http_handler_pt handler, int flag) {
@@ -28,8 +28,6 @@ Tiny &Tiny::get(tiny_uri_t str, tiny_http_handler_pt handler, int flag) {
 }
 
 Tiny::~Tiny() {
-    delete worker;
-    delete socket_queue;
     logger::info << "Tiny Server Shutdown...";
     logger::destroy();
 }
@@ -45,27 +43,25 @@ int Tiny::run() {
 
 int Tiny::run(tiny_port_t port) {
     return TinySocketStream::wait(port, [this](tiny_socket_fd_t listenfd) {
-        int len = socket_queue->insert((void *)listenfd);
+        int len = socket_queue.insert(new tiny_socket_t(listenfd));
         // std::cout << "len: " << len << std::endl;
     });
 }
 
-void *Tiny::work(void *args) {
+void* Tiny::work(void *) {
     tiny_epoll_t epoll;
     while (1) {
-        void *argc = socket_queue->remove();
-        tiny_socket_fd_t listenfd = *((tiny_socket_fd_t *)(&argc));
-        tiny_socket_t *socket = new tiny_socket_t(listenfd);
+        auto socket = socket_queue.remove();
         if (epoll.add(socket) == TINY_SUCCESS) {
             logger::debug << "[Tiny] socket_handler: " << socket->fd << " -> "
-                          << epoll.efd << " on listenfd  " << listenfd;
+                          << epoll.efd;
         } else {
             delete socket;
-            std::cout << "!!!!!!" << std::endl;
+            logger::error << "[Tiny] socket_handler: ";
             continue;
         }
         while (!epoll.empty()) {
-            auto sockets = epoll.wait();
+            auto sockets = epoll.wait(-1);
             for (auto &item : sockets) {
                 tiny_socket_t *p = (tiny_socket_t *)item.first;
                 tiny_int_t s = TINY_ERROR;

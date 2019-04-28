@@ -19,7 +19,7 @@ public:
     tiny_int_t add(tiny_socket_t*);
     tiny_int_t remove(tiny_socket_t*);
     tiny_int_t modify(tiny_socket_t*);
-    std::vector<tiny_epoll_event_t> wait(/*tiny_epoll_handler_pt*/);
+    std::vector<tiny_epoll_event_t> wait(int);
     tiny_unsigned_t size(){return count;}
     tiny_bool_t empty(){return count==0;}
 private:

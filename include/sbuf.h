@@ -11,11 +11,11 @@ namespace tiny{
     public:
         Sbuf();
         // ~Sbuf();
-        int insert(T*);
-        T* remove();
+        int insert(const T &);
+        T remove();
         int size();
     private:
-        std::queue<T*> queue;
+        std::queue<T> queue;
         const int n;             /* Maximum number of slots */
         std::mutex q_mutex;       /* Protects accesses to buf */
         sem_t slots;       /* Counts available slots */
@@ -36,7 +36,7 @@ namespace tiny{
         return count;
     }
     template <class T>
-    int Sbuf<T>::insert(T* item){
+    int Sbuf<T>::insert(const T & item){
         logger::debug << "prepare to insert 1 item into sbuf ... " << logger::endl;
         P(&slots);                          /* Wait for available slot */
         q_mutex.lock();
@@ -49,9 +49,9 @@ namespace tiny{
     }
 
     template <class T>
-    T* Sbuf<T>::remove(){
+    T Sbuf<T>::remove(){
         logger::debug << "prepare to get 1 item from sbuf ... " << logger::endl;
-        T *p;
+        T p;
         int count = 0;
         P(&items);                          /* Wait for available item */
         q_mutex.lock();
