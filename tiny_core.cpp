@@ -22,14 +22,15 @@ Tiny::Tiny(const string &filename) {
     worker.start( std::bind(&Tiny::work, this, std::placeholders::_1), this );
 }
 
-Tiny &Tiny::get(tiny_uri_t str, tiny_http_handler_pt handler, int flag) {
-    router_list.emplace_back(str, handler, flag);
-    return *this;
-}
-
 Tiny::~Tiny() {
     logger::info << "Tiny Server Shutdown...";
     logger::destroy();
+}
+
+// bind uri to handler
+Tiny &Tiny::get(tiny_uri_t str, tiny_http_handler_pt handler, int flag) {
+    router_list.emplace_back(str, handler, flag);
+    return *this;
 }
 
 int Tiny::run() {
@@ -42,13 +43,14 @@ int Tiny::run() {
 }
 
 int Tiny::run(tiny_port_t port) {
+    // main thread: wait for new connection, push tasks to child tasks
     return TinySocketStream::wait(port, [this](tiny_socket_fd_t listenfd) {
         int len = socket_queue.insert(new tiny_socket_t(listenfd));
-        // std::cout << "len: " << len << std::endl;
     });
 }
 
 void* Tiny::work(void *) {
+    // child task: accept task child, handle, response
     tiny_epoll_t epoll;
     while (1) {
         auto socket = socket_queue.remove();
@@ -77,6 +79,7 @@ void* Tiny::work(void *) {
     return NULL;
 }
 
+// handler for http request
 tiny_int_t Tiny::http_handler(tiny_socket_t *socket) {
     static std::unordered_map<tiny_socket_t *, tiny_http_task_t> cache;
 
@@ -111,6 +114,7 @@ tiny_int_t Tiny::http_handler(tiny_socket_t *socket) {
     return s;
 }
 
+// handler for response
 tiny_int_t Tiny::response_handler(const tiny_http_request_t &request,
                                   tiny_http_response_t &response) {
     for (auto &item : router_list) {
