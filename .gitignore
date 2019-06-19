@@ -1,6 +1,7 @@
 /example
 /lib
-.sh
-.txt
-.a
-.o
+**/*.sh
+**/*.txt
+**/*.a
+**/*.o
+
