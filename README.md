@@ -11,7 +11,8 @@ C++11编写的轻量级Web服务器，基于事件驱动实现了线程的异步
 make
 
 ## Usage  
- ./tiny configfile  
+make test  
+curl 127.0.0.1:8888  
 
 ## Code  
 .    

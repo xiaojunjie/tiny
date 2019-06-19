@@ -5,7 +5,7 @@ LIBS = -L../dist
 LDFLAGS += -ltiny -lpthread -ldl
 #INCLUDE += 
 
-all: test
+all: test config
 
 test: main.o
 	$(CC) $^ -o test_server $(LIBS)  $(LDFLAGS)
