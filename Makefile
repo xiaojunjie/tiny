@@ -31,9 +31,3 @@ test:
 
 curl:
 	curl 127.0.0.1:8888/ -v &
-#
-# 1 main thread push listenid to queue
-# 2 worker get listenid and create a socket based on it
-# 3 worker epoll_wait sockets until empty or all sleep, which need to be developed
-# 4 back to step 2
-# 

@@ -8,18 +8,18 @@
 	<link rel="shortcut icon" href="/favicon.ico">
 	<link rel="icon" href="/favicon.ico">
 	<link rel="mask-icon" href="https://developer.apple.com/apple-logo.svg" color="#333333">
-	<link rel="stylesheet" href="/css/globalnav.css" type="text/css">
-	<link rel="stylesheet" href="/css/global.dist.css" type="text/css">
+	<link rel="stylesheet" href="/assets/css/globalnav.css" type="text/css">
+	<link rel="stylesheet" href="/assets/css/global.dist.css" type="text/css">
 
-	<script src="/js/jquery-1.11.0.min.js"></script>
-	<script src="/js/jquery.retinate.js"></script>
-	<script src="/js/global.js"></script>
-	<script src="/js/global-logout.js"></script>
+	<script src="/assets/js/jquery-1.11.0.min.js"></script>
+	<script src="/assets/js/jquery.retinate.js"></script>
+	<script src="/assets/js/global.js"></script>
+	<script src="/assets/js/global-logout.js"></script>
 
-	<link rel="stylesheet" href="/css/fonts1.css" type="text/css">
-	<link rel="stylesheet" href="/css/fonts2.css" type="text/css">
-	<link rel="stylesheet" href="/css/fonts3.css" type="text/css">
-	<link rel="stylesheet" href="/css/fonts4.css" type="text/css">
+	<link rel="stylesheet" href="/assets/css/fonts1.css" type="text/css">
+	<link rel="stylesheet" href="/assets/css/fonts2.css" type="text/css">
+	<link rel="stylesheet" href="/assets/css/fonts3.css" type="text/css">
+	<link rel="stylesheet" href="/assets/css/fonts4.css" type="text/css">
 
 	<title>Tiny Web Server - XJJFLY Developer</title>
 	<meta name="omni_page" content="Swift - Apple Developer">
@@ -39,14 +39,14 @@
 	<meta name="twitter:creator" content="@SwiftLang">
 	<meta name="twitter:title" content="Swift - Apple Developer">
 	<meta name="twitter:description" content="Swift is a powerful and intuitive programming language for iOS, macOS, tvOS, and watchOS. Writing Swift code is interactive and fun, the syntax is concise yet expressive, and Swift includes modern features developers love. Swift code is safe by design, yet also produces software that runs lightning-fast.">
-	<link href="/css/swift.css" rel="stylesheet" type="text/css">
+	<link href="/assets/css/swift.css" rel="stylesheet" type="text/css">
 </head>
 
 <body id="overview">
 
 	<input type="checkbox" id="ac-gn-menustate" class="ac-gn-menustate">
 	<div id="ac-gn-curtain" class="ac-gn-curtain"></div>
-	<script type="text/javascript" src="/js/ac-globalnav.built.js"></script>
+	<script type="text/javascript" src="/assets/js/ac-globalnav.built.js"></script>
 	<div id="ac-gn-viewport-emitter">&nbsp;</div>
 
 	<div id="top">
@@ -56,7 +56,7 @@
 			var s_account = "appleglobal,appleusdeveloper"
 		</script>
 
-		<script type="text/javascript" src="/js/s_code_h.js"></script>
+		<script type="text/javascript" src="/assets/js/s_code_h.js"></script>
 		<script type="text/javascript">
 			s.pageName = AC && AC.Tracking && AC.Tracking.pageName();
 			s.channel = "www.us.developer"
@@ -68,7 +68,7 @@
 		<!-- End SiteCatalyst code version: H.8. -->
 	</div>
 
-	<link rel="stylesheet" property="stylesheet" href="/css/localnav.css" type="text/css">
+	<link rel="stylesheet" property="stylesheet" href="/assets/css/localnav.css" type="text/css">
 	<input type="checkbox" id="localnav-menustate" class="localnav-menustate">
 	<nav id="localnav" class="localnav localnav-scrim" data-sticky="" role="navigation">
 		<div class="localnav-wrapper">
@@ -115,7 +115,7 @@
 		</div>
 	</nav>
 	<label id="localnav-curtain" for="localnav-menustate"></label>
-	<script src="/js/ac-localnav.built.js"></script>
+	<script src="/assets/js/ac-localnav.built.js"></script>
 
 
 	<main id="main" class="main" role="main">
@@ -123,7 +123,7 @@
 		<div class="grid">
 			<div class="row">
 				<div class="column gutter large-10 large-centered small-12 padding-bottom-small padding-top text-center">
-					<img src="/img/swift-64x64.png" width="64" height="64" alt="">
+					<img src="/assets/img/swift-64x64.png" width="64" height="64" alt="">
 					<h1 class="headline"><span class="title">Tiny</span> 1.0</h1>
 					<h3 class="sub-headline">一个小型Web服务器，简单轻巧。</h3>
 					<p class="intro"> Tiny是一个用C++编写的小型Web服务器，不依赖于任何第三库。Tiny支持最基本的Web服务器功能，如路由配置、模板渲染、日志记录等，并且拥有能够动态伸缩的线程池，能满足一定的并发需求。</p>

@@ -2,18 +2,17 @@ include ../tiny.mk
 current_dir = $(dir $(abspath $(firstword $(MAKEFILE_LIST))))
 
 LIBS = -L../dist
-LDFLAGS += -ltiny -lpthread
+LDFLAGS += -ltiny -lpthread -ldl
 #INCLUDE += 
 
 all: test
 
-test: main.o ../tool.o
+test: main.o
 	$(CC) $^ -o test_server $(LIBS)  $(LDFLAGS)
 	rm -f *.o 
 
 clean:
 	rm -f *.o
-
 
 .PHONY: config
 config:
@@ -22,8 +21,4 @@ config:
 	@sed -i "/^template\s*=/ s:=.*:= $(current_dir)template/:" tiny.cfg
 	@sed -i "/^port\s*=/ s:=.*:= 8888:" tiny.cfg
 	@cat tiny.cfg
-
-.PHONY: logger
-logger: logger.cpp ../tool.cpp ../file/file_logger.cpp 
-	 $(CC) $^ -I.. -I../include -std=c++11 -lpthread -ldl && ./a.out
 

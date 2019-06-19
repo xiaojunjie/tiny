@@ -1,70 +1,64 @@
 #pragma once
 
-#include "tool.h"
 #include <queue>
 #include <mutex>
+#include <condition_variable>
 #define LISTENQ_G 4
 #define LISTENQ_L 1024
 namespace tiny{
-    template <class T>
-    class Sbuf{
+
+template <class T>
+class Sbuf{
     public:
         Sbuf();
         // ~Sbuf();
         int insert(const T &);
         T remove();
-        int size();
+        int size() const;
     private:
         std::queue<T> queue;
-        const int n;             /* Maximum number of slots */
-        std::mutex q_mutex;       /* Protects accesses to buf */
-        sem_t slots;       /* Counts available slots */
-        sem_t items;       /* Counts available items */
+        const int capacity;             /* Maximum number of slots */
+        std::mutex mutex;
+        std::condition_variable producer;
+        std::condition_variable consumer;
     };
 
     template <class T>
-    Sbuf<T>::Sbuf():n(LISTENQ_G){
-        Sem_init(&slots, 0, n);      /* Initially, buf has n empty slots */
-        Sem_init(&items, 0, 0);      /* Initially, buf has zero data items */
-    }
+    Sbuf<T>::Sbuf():capacity(LISTENQ_G){}
 
     template <class T>
-    int Sbuf<T>::size(){
-        q_mutex.lock();
-        int count = queue.size(); 
-        q_mutex.unlock();
-        return count;
+    int Sbuf<T>::size() const{
+        std::lock_guard<std::mutex> lock(mutex);
+        return queue.size(); 
     }
     template <class T>
     int Sbuf<T>::insert(const T & item){
         logger::debug << "prepare to insert 1 item into sbuf ... " << logger::endl;
-        P(&slots);                          /* Wait for available slot */
-        q_mutex.lock();
+        std::unique_lock<std::mutex> lock(mutex);
+        producer.wait(lock,[=](){return queue.size()<capacity;});
         queue.push(item);
-        int count = queue.size();
-        q_mutex.unlock();
-        V(&items);                          /* Announce available item */
-        logger::debug << count <<" item in sbuf after insert" << logger::endl;
-        return count;
+        consumer.notify_one();
+        int size = queue.size();
+        lock.unlock();
+        logger::debug << size <<" item in sbuf after insert" << logger::endl;
+        return size;
     }
 
     template <class T>
     T Sbuf<T>::remove(){
         logger::debug << "prepare to get 1 item from sbuf ... " << logger::endl;
-        T p;
-        int count = 0;
-        P(&items);                          /* Wait for available item */
-        q_mutex.lock();
-        if(queue.empty()){
-            p = NULL;
-        }else{
-            p = queue.front();
-            queue.pop();
-            count = queue.size();
+        T res = NULL;
+        
+        std::unique_lock<std::mutex> lock(mutex);
+        consumer.wait(lock,[=](){return !queue.empty();});
+        
+        if(!queue.empty()){
+            res = queue.front(); queue.pop();
         }
-        q_mutex.unlock();
-        V(&slots);                          /* Announce available slot */
-        logger::debug << count <<" item in sbuf after remove" << logger::endl;
-        return p;
+        producer.notify_one();
+        int size = queue.size();
+        lock.unlock();
+        logger::debug << size <<" item in sbuf after remove" << logger::endl;
+        return res;
     }
 }
