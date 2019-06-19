@@ -12,3 +12,21 @@ make
 
 ## Usage  
  ./tiny configfile  
+
+## Code  
+.
+├── file
+|   ├── file_logger.cpp
+|   └── tiny_file_io.cpp
+├── http
+|   └── http_protocol.cpp
+├── os
+|   └── tiny_threadpool.cpp
+├── route
+|   ├── tiny_handler.cpp
+|   └── tiny_router.cpp
+├── socket
+|   ├── tiny_epoll.cpp
+|   ├── tiny_socket_io.cpp
+|   └── tiny_socket_stream.cpp
+└── tiny_core.cpp
