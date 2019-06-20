@@ -45,7 +45,7 @@ int Tiny::run() {
 int Tiny::run(tiny_port_t port) {
     // main thread: wait for new connection, push tasks to child tasks
     return TinySocketStream::wait(port, [this](tiny_socket_fd_t listenfd) {
-        int len = socket_queue.insert(new tiny_socket_t(listenfd));
+        socket_queue.insert(new tiny_socket_t(listenfd));
     });
 }
 

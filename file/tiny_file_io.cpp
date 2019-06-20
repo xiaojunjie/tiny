@@ -8,7 +8,7 @@ tiny_conf_t tiny_read_conf(const tiny_string_t &filename) {
     for (auto & cfg : cfgs) {
         if (cfg.front() == '#')
             continue;
-        int i = cfg.find_first_of('=');
+        auto i = cfg.find_first_of('=');
         if (i == std::string::npos)
             continue;
         cfg[i] = ' ';
@@ -50,7 +50,7 @@ tiny_int_t tiny_file_read(const tiny_string_t &filename,
 tiny_array_string_t tiny_file_readlines(const tiny_string_t &filename) {
     tiny_array_string_t elems;
     tiny_string_t content;
-    int n = tiny_file_read(filename, content);
+    tiny_file_read(filename, content);
     std::stringstream ss(content);
     tiny_string_t item;
     while (getline(ss, item)) {

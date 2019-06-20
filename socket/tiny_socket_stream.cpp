@@ -84,7 +84,7 @@ namespace tiny{
             throw std::runtime_error(strerror(errno));
         struct epoll_event event;
         while(1){
-            int n = epoll_wait(efd, &event, 1, -1);
+            epoll_wait(efd, &event, 1, -1);
             if (event.events & EPOLLIN){
                 callback(listenfd);
             }else{

@@ -181,7 +181,7 @@ namespace tiny{
     }
 
     tiny_int_t http_parse_body(const tiny_string_t &buf, tiny_http_request_t &request){
-        int length = std::stoi(request.header.content_length);
+        unsigned int length = std::stoi(request.header.content_length);
         if(request.body.empty()){
             int i = buf.find("\r\n\r\n");
             if(i>=0)

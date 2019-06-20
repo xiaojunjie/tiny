@@ -7,28 +7,23 @@
 #include <queue>
 #include <condition_variable>
 namespace logger{
+    class logstream;
+    struct logboot;
+    typedef logstream& (*end_fun)(logstream&);
     typedef enum {Debug, Info, Warm, Error, Fatal} Level;
-    class logstream{
-    public:
+    struct logstream{
         logstream(Level l):type(l){}
         ~logstream();
         std::ostringstream msgBuf;
-        static std::condition_variable writer;
-        static std::mutex mutex;
-        static std::ofstream logfile;
-        static std::queue<std::string> msgQueue;
         static Level level; // Log Level of Server
 
         template <typename T>
         logstream& operator<<(const T&);
-
-        typedef logstream& (*end_fun)(logstream&);
         logstream& operator<<(end_fun);
         const Level type; // current Log Level of logstream
         void dump();
     };
-    typedef logstream& (*end_fun)(logstream&);
-
+    
     template <typename T>
     logstream& logstream::operator<<(const T& x){
         if( type >= level   ){
@@ -47,9 +42,41 @@ namespace logger{
         return *this;
     }
     
+    struct logboot{
+        Level type;
+        
+        //for first msg  .eg:
+        //logger::debug << msg;
+        template <typename T>
+        std::shared_ptr<logstream> operator<<(const T& x);
+
+        //for endl without msg  .eg:
+        //logger::debug << logger::endl;
+        std::shared_ptr<logstream> operator<<(end_fun manip);
+    };
+    template <typename T> 
+    std::shared_ptr<logstream> logboot::operator<<(const T& x){
+        std::shared_ptr<logstream> p = std::make_shared<logstream>(type);
+        *p << x;
+        return p;
+    }
+
+    //for Non-first msg  .eg:
+    //logger::debug << ... << msg;
+    template <typename T>
+    std::shared_ptr<logstream> operator<<(std::shared_ptr<logstream> log, const T& s){
+        if( log->type >= logstream::level )
+            log->msgBuf << s;
+        return log;
+    }
+    // for endl with msg  .eg:
+    //logger::debug << ... << logger::endl;
+    std::shared_ptr<logstream> operator<<(std::shared_ptr<logstream>, end_fun);
+    
     template <typename T>
     T& endl(T& stream){
         stream.dump();
         return stream;
     }
+    
 }

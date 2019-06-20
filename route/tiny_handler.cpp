@@ -60,7 +60,7 @@ static tiny_int_t tiny_http_machine_header_body(const tiny_http_event_t & event,
         return TINY_SUCCESS;
     }
     const tiny_string_t *p = (tiny_string_t*)event.data;
-    int length = stoi(task.request->header.content_length);
+    unsigned int length = stoi(task.request->header.content_length);
     if(http_parse_body(*p, *task.request)){
         if( length == task.request->body.length() )
             task.status = http_status_type::body;

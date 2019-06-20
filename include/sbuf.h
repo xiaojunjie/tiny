@@ -14,10 +14,10 @@ class Sbuf{
         // ~Sbuf();
         int insert(const T &);
         T remove();
-        int size() const;
+        unsigned int size() const;
     private:
         std::queue<T> queue;
-        const int capacity;             /* Maximum number of slots */
+        const unsigned int capacity;
         std::mutex mutex;
         std::condition_variable producer;
         std::condition_variable consumer;
@@ -27,7 +27,7 @@ class Sbuf{
     Sbuf<T>::Sbuf():capacity(LISTENQ_G){}
 
     template <class T>
-    int Sbuf<T>::size() const{
+    unsigned int Sbuf<T>::size() const{
         std::lock_guard<std::mutex> lock(mutex);
         return queue.size(); 
     }
@@ -38,7 +38,7 @@ class Sbuf{
         producer.wait(lock,[=](){return queue.size()<capacity;});
         queue.push(item);
         consumer.notify_one();
-        int size = queue.size();
+        auto size = queue.size();
         lock.unlock();
         logger::debug << size <<" item in sbuf after insert" << logger::endl;
         return size;
@@ -56,7 +56,7 @@ class Sbuf{
             res = queue.front(); queue.pop();
         }
         producer.notify_one();
-        int size = queue.size();
+        auto size = queue.size();
         lock.unlock();
         logger::debug << size <<" item in sbuf after remove" << logger::endl;
         return res;
