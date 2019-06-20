@@ -1,14 +1,11 @@
 #include "file_logstream.h"
 #include "file_logboot.h"
-#include <mutex>
 #include <ctime>
-#include <queue>
 #include <thread>
-#include "tool.h"
 #include <unistd.h>
 #include <ios>
 
-static std::string  Get_Current_Date(){
+static std::string  get_current_date(){
     char tmp[16];
     time_t nowtime = time(NULL);
     strftime(tmp,sizeof(tmp),"%Y-%m-%d",localtime(&nowtime));
@@ -18,42 +15,32 @@ namespace logger{
     std::ofstream logstream::logfile;
     std::queue<std::string> logstream::msgQueue;
     Level logstream::level;
-    std::mutex logstream::log_mutex;
-    sem_t logstream::sem_msg;
+    std::mutex logstream::mutex;
+    std::condition_variable logstream::writer;
     LogBoot debug = {Debug};
     LogBoot info = {Info};
     LogBoot warm = {Warm};
     LogBoot error = {Error};
     LogBoot fatal = {Fatal};
-    static void writeToFile(){
-        while(1){
-            P(&logstream::sem_msg);    /* Wait for  msg */
-            logstream::log_mutex.lock();
-            std::string msg = logstream::msgQueue.front();
-            logstream::msgQueue.pop();
-            logstream::log_mutex.unlock();
-            logstream::logfile << msg;
-            logstream::logfile.flush();
-        }
-    }
     void init(std::string filefolder, Level l){
         logstream::level = l;
-        std::string filename = filefolder + Get_Current_Date() + ".txt";
+        std::string filename = filefolder + get_current_date() + ".txt";
         logstream::logfile.open(filename, std::ofstream::out | std::ofstream::trunc );
-        Sem_init(&logstream::sem_msg, 0, 0);
-        std::thread writer(&writeToFile);
+        std::thread writer([](){
+            while(1){
+                std::unique_lock<std::mutex> lock(logstream::mutex);
+                logstream::writer.wait(lock,[=](){return !logstream::msgQueue.empty();});
+                std::string msg = logstream::msgQueue.front();
+                logstream::msgQueue.pop();
+                lock.unlock();
+                logstream::logfile << msg;
+                logstream::logfile.flush();
+            }
+        });
         writer.detach();
     }
     void destroy() {
-        while(1){
-            logstream::log_mutex.lock();
-            int size = logstream::msgQueue.size();
-            logstream::log_mutex.unlock();
-            if(size>0)
-                usleep(100000); // wait for writer
-            else
-                break;
-        }
+        while(logstream::msgQueue.size()>0) usleep(100000); // wait for writer
         logstream::logfile.close();
     }
 
@@ -67,10 +54,9 @@ namespace logger{
     void logstream::dump(){
         if( type >= level   ){
             msgBuf << "\n";
-            log_mutex.lock();
+            std::lock_guard<std::mutex> lock(mutex);
             msgQueue.push(msgBuf.str());
-            log_mutex.unlock();
-            V(&sem_msg);
+            writer.notify_one();
             msgBuf.clear();
             msgBuf.str("");
         }

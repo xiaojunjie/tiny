@@ -5,7 +5,7 @@
 #include <fstream>
 #include <mutex>
 #include <queue>
-#include "tool.h"
+#include <condition_variable>
 namespace logger{
     typedef enum {Debug, Info, Warm, Error, Fatal} Level;
     class logstream{
@@ -13,8 +13,8 @@ namespace logger{
         logstream(Level l):type(l){}
         ~logstream();
         std::ostringstream msgBuf;
-        static sem_t sem_msg;
-        static std::mutex log_mutex;
+        static std::condition_variable writer;
+        static std::mutex mutex;
         static std::ofstream logfile;
         static std::queue<std::string> msgQueue;
         static Level level; // Log Level of Server
