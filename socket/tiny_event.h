@@ -11,10 +11,10 @@ typedef tiny_int_t tiny_epoll_fd_t;
 typedef tiny_int_t(*tiny_epoll_handler_pt)(void*);
 typedef std::pair<void*,int> tiny_epoll_event_t;
 
-class TinyEpoll {
+class TinyEvent {
 public:
-    TinyEpoll();
-    ~TinyEpoll();
+    TinyEvent();
+    ~TinyEvent();
     const tiny_epoll_fd_t efd;
     tiny_int_t add(tiny_socket_t*);
     tiny_int_t remove(tiny_socket_t*);
@@ -27,5 +27,5 @@ private:
     struct epoll_event *events;
     tiny_epoll_handler_pt event_handler;
 };
-typedef TinyEpoll tiny_epoll_t;
+typedef TinyEvent tiny_event_t;
 }

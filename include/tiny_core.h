@@ -26,7 +26,9 @@ public:
 private:
 	static const tiny_version_t version;
     tiny_int_t run(tiny_port_t);
-    Sbuf<tiny_socket_t*> socket_queue;
+    //Sbuf<tiny_socket_t*> socket_queue;
+    std::vector<tiny_event_t*> loop;
+    std::mutex loop_mutex;
     ThreadPool worker;
 	tiny_conf_t config;
     tiny_router_t router_list;

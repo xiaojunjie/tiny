@@ -44,37 +44,40 @@ int Tiny::run() {
 
 int Tiny::run(tiny_port_t port) {
     // main thread: wait for new connection, push tasks to child tasks
+    while(loop.empty());
     return TinySocketStream::wait(port, [this](tiny_socket_fd_t listenfd) {
-        socket_queue.insert(new tiny_socket_t(listenfd));
+       static int index = 0;
+       tiny_event_t *event = loop[index];
+       tiny_socket_t *socket = new tiny_socket_t(listenfd);
+       if (event->add(socket) == TINY_SUCCESS) {
+           logger::debug << "[Tiny] socket_handler: " << socket->fd << " -> "
+                         << event->efd;
+       } else {
+           delete socket;
+           logger::error << "[Tiny] run: " << event->efd;
+       }
+       index = (index+1)%loop.size();
     });
 }
 
 void* Tiny::work(void *) {
     // child task: accept task child, handle, response
-    tiny_epoll_t epoll;
+    tiny_event_t event;
+    loop_mutex.lock();
+    loop.push_back(&event);
+    loop_mutex.unlock();
     while (1) {
-        auto socket = socket_queue.remove();
-        if (epoll.add(socket) == TINY_SUCCESS) {
-            logger::debug << "[Tiny] socket_handler: " << socket->fd << " -> "
-                          << epoll.efd;
-        } else {
-            delete socket;
-            logger::error << "[Tiny] socket_handler: ";
-            continue;
-        }
-        while (!epoll.empty()) {
-            auto sockets = epoll.wait(-1);
-            for (auto &item : sockets) {
-                tiny_socket_t *p = (tiny_socket_t *)item.first;
-                tiny_int_t s = TINY_ERROR;
-                if (item.second == 1)
-                    s = http_handler(p);
-                if (s != TINY_SUCCESS) {
-                    epoll.remove(p);
-                    delete p;
-                }
-            }
-        }
+       auto sockets = event.wait(-1);
+       for (auto &item : sockets) {
+           tiny_socket_t *p = (tiny_socket_t *)item.first;
+           tiny_int_t s = TINY_ERROR;
+           if (item.second == 1)
+               s = http_handler(p);
+           if (s != TINY_SUCCESS) {
+               event.remove(p);
+               delete p;
+           }
+       }
     }
     return NULL;
 }
