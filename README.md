@@ -32,4 +32,5 @@ curl 127.0.0.1:8888
 └── tiny\_core.cpp  
 
 ## Test  
+CPU: i3,  RAM: 4GB, Thread: 20     
 ![webbench](./test/webbench.png)  
