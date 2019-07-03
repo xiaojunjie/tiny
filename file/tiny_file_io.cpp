@@ -34,17 +34,34 @@ std::ostream &operator<<(std::ostream &out, tiny_conf_t const &conf){
     return out << buf.str();
 }
 
+//tiny_int_t tiny_file_read(const tiny_string_t &filename,
+//                          tiny_string_t &userbuf) {
+//    std::ifstream file("./" + filename,
+//                       std::ifstream::binary | std::ifstream::in);
+//    if (!file)
+//        return TINY_ERROR;
+//    std::stringstream buffer;
+//    buffer << file.rdbuf();
+//    file.close();
+//    userbuf = buffer.str();
+//    return TINY_SUCCESS;
+//}
+
 tiny_int_t tiny_file_read(const tiny_string_t &filename,
-                          tiny_string_t &userbuf) {
-    std::ifstream file("./" + filename,
-                       std::ifstream::binary | std::ifstream::in);
-    if (!file)
+        tiny_string_t &userbuf) {
+    struct stat sbuf;
+    if(stat(filename.c_str(), &sbuf)<0) 
         return TINY_ERROR;
-    std::stringstream buffer;
-    buffer << file.rdbuf();
-    file.close();
-    userbuf = buffer.str();
+    int src_fd = open(filename.c_str(), O_RDONLY, 0);
+    if(src_fd<0) return TINY_ERROR;
+    void* p = mmap(NULL, sbuf.st_size, PROT_READ, MAP_PRIVATE, src_fd, 0);
+    close(src_fd);
+    if(p!=MAP_FAILED){
+        userbuf.assign(static_cast<char*>(p), sbuf.st_size);
+    }
+    munmap(p,sbuf.st_size);
     return TINY_SUCCESS;
+   
 }
 
 tiny_array_string_t tiny_file_readlines(const tiny_string_t &filename) {

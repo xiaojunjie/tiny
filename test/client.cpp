@@ -30,29 +30,29 @@ int open_clientfd(char *hostname, int port){
                 return -1;
         return clientfd;
 }
-int main(int argc, char **argv){
-    if (argc != 3) {
-        std::cout << "./a.out HOST PORT" << std::endl;
-    	return -1;
-    }
-    char *host = argv[1];
-    int port = atoi(argv[2]);
-
-    int clientfd = open_clientfd(host, port);
-
-    // int fd= open("./test.xml",O_RDONLY);
-    // int a = read(fd,buf,1024);
-    std::string buf = "GET / HTTP/1.1\r\n";
-	write(clientfd, buf.c_str(), 100);
-    std::cout << 0 << std::endl;
-    sleep(15);
-    std::cout << 1 << std::endl;
-    buf = "ASDSDSDSDSD\r\n";
-	write(clientfd, buf.c_str(), buf.length());
-    sleep(20);
-    std::cout << 2 << std::endl;
-    close(clientfd); //line:netp:echoclient:close
-    std::cout << 3 << std::endl;
-    return 1;
-}
+//int main(int argc, char **argv){
+//    if (argc != 3) {
+//        std::cout << "./a.out HOST PORT" << std::endl;
+//    	return -1;
+//    }
+//    char *host = argv[1];
+//    int port = atoi(argv[2]);
+//
+//    int clientfd = open_clientfd(host, port);
+//
+//    // int fd= open("./test.xml",O_RDONLY);
+//    // int a = read(fd,buf,1024);
+//    std::string buf = "GET / HTTP/1.1\r\n";
+//	write(clientfd, buf.c_str(), 100);
+//    std::cout << 0 << std::endl;
+//    sleep(15);
+//    std::cout << 1 << std::endl;
+//    buf = "ASDSDSDSDSD\r\n";
+//	write(clientfd, buf.c_str(), buf.length());
+//    sleep(20);
+//    std::cout << 2 << std::endl;
+//    close(clientfd); //line:netp:echoclient:close
+//    std::cout << 3 << std::endl;
+//    return 1;
+//}
 /* $end echoclientmain */

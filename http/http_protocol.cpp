@@ -103,10 +103,21 @@ namespace tiny{
             elems.push_back("");
         return elems;
     }
-    tiny_int_t http_parse_request_line(const tiny_string_t &buf, tiny_http_request_t &request){
-        if(buf.length()==0)
+    tiny_int_t http_parse(tiny_http_request_t &request, const tiny_string_t &buf){
+        if(
+                http_parse_request_line(buf, request)==TINY_ERROR || 
+                http_parse_header(buf, request)==TINY_ERROR || 
+                http_parse_body(buf, request)==TINY_ERROR
+          )
             return TINY_ERROR;
-        tiny_array_string_t header = split(buf, ' ');
+        else
+            return TINY_SUCCESS;
+    }
+    tiny_int_t http_parse_request_line(const tiny_string_t &buf, tiny_http_request_t &request){
+        int length = buf.find("\r\n");
+        if(length<0)
+            return TINY_ERROR;
+        tiny_array_string_t header = split(buf.substr(0,length), ' ');
         if(header.size()==3){
             request.method = header[0];
             request.uri = header[1];
@@ -121,7 +132,7 @@ namespace tiny{
         if(length==0)
             return TINY_ERROR;
         tiny_dict_t header;
-        for(int i=0, j=0; i<length; i=j+2){
+        for(int i=buf.find("\r\n")+2, j=0; i<length; i=j+2){
             j = buf.find("\r\n", i);
             if(j<=i)
                 break;
@@ -181,6 +192,8 @@ namespace tiny{
     }
 
     tiny_int_t http_parse_body(const tiny_string_t &buf, tiny_http_request_t &request){
+        if(request.header.content_length.empty())
+            return TINY_OVER;
         unsigned int length = std::stoi(request.header.content_length);
         if(request.body.empty()){
             int i = buf.find("\r\n\r\n");
@@ -196,9 +209,19 @@ namespace tiny{
         else
             return TINY_SUCCESS;
     }
-    tiny_int_t http_connettion_handler(const tiny_http_request_t &request, tiny_http_response_t &response){
-        //response.header.connection = request.header.connection;
-        response.header.connection = CONNEXTION_CLOSE;
+    tiny_bool_t http_connnecton_status(const tiny_http_response_t & response){
+        return response.header.connection == CONNEXTION_KEEP_ALIVE;
+    }
+    tiny_bool_t http_request_status(const tiny_http_request_t & request){
+        if(request.method.empty())
+            return false;
+        if(request.header.content_length.empty())
+            return true;
+        return request.body.length() == (unsigned int)stoi(request.header.content_length);
+    }
+    tiny_int_t http_connection_handler(const tiny_http_request_t &request, tiny_http_response_t &response){
+        response.header.connection = request.header.connection;
+        //response.header.connection = CONNEXTION_CLOSE;
         return TINY_SUCCESS;
     }
     tiny_int_t http_version_handler(tiny_http_response_t &response){
@@ -223,38 +246,4 @@ namespace tiny{
         }
         return TINY_SUCCESS;
     }
-    //    if(request.status != Header)
-    //        return 0;
-    //    if( request.GetMethod().compare("POST") !=0 ){
-    //        request.status = Body;
-	//		return 1;
-    //    }
-	//	int content_length = atoi( request.GetHeader(HttpMessage::HEADER_CONTENT_LENGTH).c_str() );
-    //    int n = 0;
-	//	if (content_length > 0){
-	//		int buf_size = MIN(content_length, BUFSIZE);
-	//		char *buf = new char[buf_size+1];
-	//		int n = socket.readn(buf,buf_size);
-	//		buf[buf_size] = '\0';
-    //        std::cout << "buf: " << buf << strlen(buf) << std::endl;
-	//		if(n > 0)
-	//			request.SetBody(buf);
-	//		delete[] buf;
-    //        if(n==buf_size)
-    //            request.status = Body;
-	//	}else if(!request.GetHeader(HttpMessage::HEADER_TRANSFER_ENCODING).empty()){
-	//		string firstline = socket.readline();
-	//		int buf_size = strtol(firstline.c_str(),NULL,16);
-	//		buf_size = MIN(buf_size, BUFSIZE*MAXLINE);
-	//		char *buf = new char[buf_size+1];
-	//		int n = socket.readn(buf,buf_size);
-	//		buf[buf_size] = '\0';
-	//		if(n > 0)
-	//			request.SetBody(buf);
-	//		delete[] buf;
-    //        if(n==buf_size)
-    //            request.status = Body;
-	//	}
-	//	return n;
-
 }

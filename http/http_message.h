@@ -1,11 +1,11 @@
 #pragma once
 
-#include "tiny_base.h"
-namespace tiny{
+#include "include/tiny_base.h"
+namespace tiny {
 
 typedef tiny_string_t http_body_t;
 
-typedef struct {
+struct http_request_header_t {
     tiny_string_t content_length;
     tiny_string_t transfer_encoding;
     tiny_string_t accept;
@@ -16,9 +16,9 @@ typedef struct {
     tiny_string_t host;
     tiny_string_t cache_control;
     tiny_string_t pragma;
-} http_request_header_t;
+};
 
-typedef struct {
+struct http_response_header_t {
     tiny_int_t content_length;
     tiny_string_t content_type;
     tiny_string_t server;
@@ -26,24 +26,22 @@ typedef struct {
     tiny_string_t cookie;
     tiny_string_t location;
     tiny_string_t cache_control;
-} http_response_header_t;
+};
 
-typedef struct {
+struct tiny_http_request_t {
     tiny_string_t method;
     tiny_string_t uri;
     tiny_string_t protocol;
     http_request_header_t header;
     http_body_t body;
-    void* data;
-}tiny_http_request_t;
+    void *data;
+};
 
-typedef struct {
+struct tiny_http_response_t {
     tiny_string_t protocol;
     tiny_int_t status;
     tiny_string_t message;
     http_response_header_t header;
     http_body_t body;
-}tiny_http_response_t;
-
-
+};
 }

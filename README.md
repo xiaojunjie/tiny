@@ -27,7 +27,6 @@ curl 127.0.0.1:8888
 |   ├── tiny\_handler.cpp  
 |   └── tiny\_router.cpp  
 ├── socket  
-|   ├── tiny\_epoll.cpp  
-|   ├── tiny\_socket\_io.cpp  
-|   └── tiny\_socket\_stream.cpp  
+|   ├── tiny\_event.cpp  
+|   └── tiny\_socket.cpp  
 └── tiny\_core.cpp  

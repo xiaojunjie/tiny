@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include <string>
 #include <sstream>
+#include <assert.h>
 #define TINY_SUCCESS 1
 #define TINY_OVER 0
 #define TINY_ERROR -1

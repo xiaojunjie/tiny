@@ -3,9 +3,12 @@ current_dir = $(dir $(abspath $(firstword $(MAKEFILE_LIST))))
 
 LIBS = -L../dist
 LDFLAGS += -ltiny -lpthread -ldl
-#INCLUDE += 
+INCLUDE = -I../
 
 all: test config
+
+socket: socket.o client.o ../socket/tiny_event.o ../socket/tiny_socket.o ../file/file_logger.o
+	$(CC) $^ -o test_socket -lpthread -ldl
 
 test: main.o
 	$(CC) $^ -o test_server $(LIBS)  $(LDFLAGS)

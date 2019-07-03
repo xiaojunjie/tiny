@@ -2,8 +2,13 @@
 
 #include <fstream>
 #include <sstream>
-#include "tiny_base.h"
+#include "include/tiny_base.h"
 #include "file_logstream.h"
+#include <sys/stat.h>
+#include <sys/mman.h>
+#include <fcntl.h>
+#include <unistd.h>
+
 namespace tiny{
 
 typedef struct {

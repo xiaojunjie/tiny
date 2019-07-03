@@ -3,13 +3,15 @@
 #include <initializer_list>
 #include <memory>
 #include "tiny_base.h"
-#include "tiny_handler.h"
-#include "tiny_file.h"
-#include "tiny_socket.h"
-#include "sbuf.h"
-#include "threadpool.h"
-#include "tiny_http.h"
-#include "tiny_router.h"
+#include "route/tiny_handler.h"
+#include "file/file_logger.h"
+#include "file/tiny_file_io.h"
+#include "socket/tiny_socket.h"
+#include "socket/tiny_event.h"
+#include "os/tiny_threadpool.h"
+#include "http/http_message.h"
+#include "http/http_protocol.h"
+#include "route/tiny_router.h"
 namespace tiny{
 
 typedef tiny_int_t tiny_port_t;
@@ -32,8 +34,8 @@ private:
     ThreadPool worker;
 	tiny_conf_t config;
     tiny_router_t router_list;
-    tiny_int_t http_handler(tiny_socket_t*);
-    tiny_int_t response_handler(const tiny_http_request_t&, tiny_http_response_t&);
+    tiny_int_t http_server(tiny_socket_t*);
+    tiny_int_t request_handler(const tiny_http_request_t&, tiny_http_response_t&);
 };
 
 }

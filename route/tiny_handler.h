@@ -1,7 +1,8 @@
 #pragma once
-#include "tiny_base.h"
-#include "tiny_socket.h"
-#include "tiny_http.h"
+#include "include/tiny_base.h"
+#include "socket/tiny_socket.h"
+#include "http/http_protocol.h"
+#include "http/http_message.h"
 namespace tiny{
 
 enum class http_event_type{
@@ -37,6 +38,7 @@ typedef struct {
 } tiny_http_task_t;
 
 tiny_int_t tiny_http_parse_handler(const tiny_http_event_t &, tiny_http_task_t &);
+tiny_int_t tiny_http_parse_handler(tiny_http_request_t &, const tiny_string_t &);
 typedef tiny_int_t(*tiny_handler_pt)(const struct epoll_event&);
 
 typedef tiny_int_t(*tiny_http_handler_pt)(const tiny_http_request_t &, tiny_http_response_t &);

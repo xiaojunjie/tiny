@@ -1,7 +1,7 @@
 include tiny.mk
 
 LIB_HTTP_OBJS = http/http_protocol.o
-lIB_SOCKET_OBJS = socket/tiny_socket_stream.o socket/tiny_socket_io.o socket/tiny_event.o
+lIB_SOCKET_OBJS = socket/tiny_socket.o socket/tiny_event.o
 lIB_ROUTE_OBJS = route/tiny_router.o
 lIB_HANDLER_OBJS = route/tiny_handler.o
 LIB_FILE_OBJS = file/tiny_file_io.o file/file_logger.o

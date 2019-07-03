@@ -4,4 +4,5 @@
 **/*.txt
 **/*.a
 **/*.o
-
+socket/tiny_socket_stream.*
+socket/tiny_socket_io.*

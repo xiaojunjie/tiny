@@ -1,5 +1,6 @@
 #include "tiny_handler.h"
-#include "tiny_file.h"
+#include "file/tiny_file_io.h"
+#include "file/file_template.h"
 namespace tiny {
 extern tiny_dict_t tiny_http_file_types;
 static tiny_string_t parse_suffix(tiny_string_t uri) {
@@ -39,7 +40,7 @@ tiny_int_t tiny_http_base_handler(const tiny_http_request_t &request,
         result &= http_cookie_handler(request, response);
     }
     if(response.header.connection.empty()){
-        result &= http_connettion_handler(request, response);
+        result &= http_connection_handler(request, response);
     }
     response.header.content_length = response.body.length();
     return result;
@@ -107,7 +108,7 @@ tiny_int_t tiny_http_parse_handler(const tiny_http_event_t & event,
 tiny_int_t tiny_http_file_handler(const tiny_string_t& filename, tiny_http_response_t &response) {
     tiny_string_t buf;
     tiny_string_t filetype = get_type(filename);
-    tiny_int_t s = tiny_file_read(filename, buf);
+    tiny_int_t s = tiny_file_read("./"+filename, buf);
     if (s == TINY_SUCCESS) {
         response.status = TINY_HTTP_OK;
         response.header.content_type = filetype;

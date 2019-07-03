@@ -4,7 +4,7 @@ TINY_ROOT = $(dir $(call where-am-i))
 CC = g++
 AR = ar crs
 CFLAGS = -std=c++11 -Wall 
-INCLUDE = -I./ -I$(TINY_ROOT) -I$(TINY_ROOT)include/
+INCLUDE = -I./ -I$(TINY_ROOT) 
 LDFLAGS = -lpthread -ldl
 
 %.o: %.cpp

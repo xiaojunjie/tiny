@@ -1,9 +1,7 @@
-#include "tiny_core.h"
-#include <iostream>
+#include "include/tiny_core.h"
 #include <regex>
 #include <sstream>
 #include <time.h>
-#include <unistd.h>
 
 namespace tiny {
 
@@ -16,9 +14,7 @@ Tiny::Tiny(const string &filename) {
     logger::info << config << logger::endl;
 
     router_list.emplace_back("Init", tiny_http_init_handler, 1);
-    // router_list.emplace_back("/assets/", tiny_http_static_handler);
     router_list.emplace_back("/", tiny_http_index_handler, 2);
-    //worker.start( std::bind(&Tiny::work, this, std::placeholders::_1) );
     worker.start( std::bind(&Tiny::work, this, std::placeholders::_1), this );
 }
 
@@ -44,20 +40,25 @@ int Tiny::run() {
 
 int Tiny::run(tiny_port_t port) {
     // main thread: wait for new connection, push tasks to child tasks
+    tiny_event_t acceptor;
+    int listenfd = TinySocket::open_listenfd(port);
+    acceptor.add(listenfd);
     while(loop.empty());
-    return TinySocketStream::wait(port, [this](tiny_socket_fd_t listenfd) {
+    while(1){
        static int index = 0;
+       acceptor.wait();
        tiny_event_t *event = loop[index];
        tiny_socket_t *socket = new tiny_socket_t(listenfd);
-       if (event->add(socket) == TINY_SUCCESS) {
-           logger::debug << "[Tiny] socket_handler: " << socket->fd << " -> "
+       if (socket->ready() && event->add(socket) == TINY_SUCCESS) {
+           logger::debug << "[Tiny] socket_handler: " << socket->get_fd() << " -> "
                          << event->efd;
        } else {
            delete socket;
            logger::error << "[Tiny] run: " << event->efd;
        }
        index = (index+1)%loop.size();
-    });
+    }
+    return 0;
 }
 
 void* Tiny::work(void *) {
@@ -67,58 +68,47 @@ void* Tiny::work(void *) {
     loop.push_back(&event);
     loop_mutex.unlock();
     while (1) {
-       auto sockets = event.wait(-1);
-       for (auto &item : sockets) {
-           tiny_socket_t *p = (tiny_socket_t *)item.first;
-           tiny_int_t s = TINY_ERROR;
-           if (item.second == 1)
-               s = http_handler(p);
+       auto sockets = event.wait();
+       for (auto item : sockets) {
+           tiny_socket_t *socket_p = (tiny_socket_t *)item.first;
+           // if client close. (EPOLLIN)
+           if( socket_p->read() == 0){
+               event.remove(socket_p);
+               delete socket_p;
+               continue;
+           }
+           tiny_int_t s = http_server(socket_p);
            if (s != TINY_SUCCESS) {
-               event.remove(p);
-               delete p;
+               event.remove(socket_p);
+               delete socket_p;
            }
        }
     }
     return NULL;
 }
 
-// handler for http request
-tiny_int_t Tiny::http_handler(tiny_socket_t *socket) {
-    static std::unordered_map<tiny_socket_t *, tiny_http_task_t> cache;
-
-    if (socket == NULL) return TINY_ERROR;
-    tiny_string_t buf;
-    tiny_int_t n = tiny_socket_read(*socket, buf);
-    if (cache.find(socket) == cache.end()) {
-        cache[socket] = {socket, new tiny_http_request_t, http_status_type::init};
-    }
-    auto & task =  cache[socket];
-    //std::cout << "before: " << (int)task.status << std::endl;
-    tiny_http_event_t event = {n>0 ? http_event_type::in : http_event_type::close, &buf};
-    tiny_int_t s = tiny_http_parse_handler(event, task);
-    //std::cout << "after: " << (int)task.status << std::endl;
-    if (s != TINY_SUCCESS) {
-        logger::debug << "[Tiny] http_handler: parse return " << s
-                      << logger::endl;
-        delete task.request;
-        cache.erase(socket);
-    }else if(task.status==http_status_type::body){
-        auto request = task.request;
-        tiny_http_response_t response;
-        response_handler(*request, response);
-        *socket << response; 
-        delete request;
-        cache.erase(socket);
-    }else if(task.status==http_status_type::over){
-        delete task.request;
-        cache.erase(socket);
+tiny_int_t Tiny::http_server(tiny_socket_t  *socket) {
+    assert(socket!=NULL);
+    auto buf = socket->get_buf();
+    tiny_http_request_t request;
+    if(http_parse(request, buf)==TINY_ERROR){
+        socket->send("HTTP/1.1 400 Bad Request\r\n\r\n");
         return TINY_ERROR;
     }
-    return s;
+    tiny_http_response_t response;
+    if(http_request_status(request)){
+        request_handler(request, response);
+        ostringstream buf;
+        buf << response;
+        socket->send(buf.str());
+        if(!http_connnecton_status(response))
+            return TINY_OVER;
+        socket->reset();
+    }
+    return TINY_SUCCESS;
 }
 
-// handler for response
-tiny_int_t Tiny::response_handler(const tiny_http_request_t &request,
+tiny_int_t Tiny::request_handler(const tiny_http_request_t &request,
                                   tiny_http_response_t &response) {
     for (auto &item : router_list) {
         if (!item.match(request))

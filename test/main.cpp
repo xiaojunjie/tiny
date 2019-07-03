@@ -1,4 +1,4 @@
-#include "tiny_core.h"
+#include "include/tiny_core.h"
 
 using namespace tiny;
 

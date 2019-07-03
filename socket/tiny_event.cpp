@@ -1,5 +1,6 @@
 #include <errno.h>
-#include "tiny_event.h"
+#include <cstring>
+#include "socket/tiny_event.h"
 
 namespace tiny{
     TinyEvent::TinyEvent():efd(epoll_create1(0)){
@@ -13,22 +14,31 @@ namespace tiny{
     }
 
     tiny_int_t TinyEvent::add(tiny_socket_t* socket){
-        if(socket==NULL)
-            return TINY_ERROR;
+        assert(socket!=NULL);
         epoll_event event;
         event.data.ptr = socket;
         event.events = EPOLLIN;
-        if(epoll_ctl(efd, EPOLL_CTL_ADD, socket->fd, &event)<0)
+        if(epoll_ctl(efd, EPOLL_CTL_ADD, socket->get_fd(), &event)<0)
             throw std::runtime_error(strerror(errno));
         else
             count ++;
         return TINY_SUCCESS;
     }
-
+    tiny_int_t TinyEvent::add(tiny_int_t fd){
+        assert(fd>0);
+        epoll_event event;
+        event.data.fd = fd;
+        event.events = EPOLLIN; // 默认水平
+        if(epoll_ctl(efd, EPOLL_CTL_ADD, fd, &event)<0)
+            throw std::runtime_error(strerror(errno));
+        else
+            count ++;
+        return TINY_SUCCESS;
+    }
     tiny_int_t TinyEvent::remove(tiny_socket_t* socket){
         if(socket==NULL)
             return TINY_ERROR;
-        if (epoll_ctl(efd, EPOLL_CTL_DEL, socket->fd, NULL)<0 )
+        if (epoll_ctl(efd, EPOLL_CTL_DEL, socket->get_fd(), NULL)<0 )
             throw std::runtime_error(strerror(errno));
         else
             count --;
@@ -39,9 +49,9 @@ namespace tiny{
         return TINY_SUCCESS;
     }
 
-    std::vector<tiny_epoll_event_t> TinyEvent::wait(int timeout){
+    std::vector<tiny_epoll_event_t> TinyEvent::wait(){
         std::vector<tiny_epoll_event_t> result;
-        int n = epoll_wait(efd, events, MAXEVENTS, timeout);
+        int n = epoll_wait(efd, events, MAXEVENTS, -1);
         if(n<0)
             throw std::runtime_error(strerror(errno));
         for (int i = 0; i < n; i++) {
